@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+{% load article_filters %}
+
+{% block title %}Personalized Recommendations{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-user"></i> Personalized Recommendations for {{ user.username }}</h2>
+    </div>
+</div>
+
+<!-- User Profile Summary -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-circle"></i> Your Reading Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Articles Read</h6>
+                            <h4 class="text-primary">{{ user.readerprofile.total_articles_read }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Reading Time</h6>
+                            <h4 class="text-success">{{ user.readerprofile.total_reading_time }} min</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Favorite Categories</h6>
+                            <h4 class="text-info">{{ favorite_categories|length }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Engagement Score</h6>
+                            <h4 class="text-warning">{{ user_engagement_score|floatformat:1 }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personalized Recommendations -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-magic"></i> AI-Powered Personalized Recommendations</h5>
+            </div>
+            <div class="card-body">
+                {% for recommendation in personalized_recommendations %}
+                    <div class="row mb-4 p-3 border rounded recommendation-card">
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5>
+                                        <a href="{% url 'article-detail' recommendation.article.slug %}" class="text-decoration-none">
+                                            {{ recommendation.article.title }}
+                                        </a>
+                                    </h5>
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary">{{ recommendation.article.category.name }}</span>
+                                        {% for tag in recommendation.article.tags.all %}
+                                            <a href="{% url 'tag-detail' tag.slug %}" class="badge bg-secondary text-decoration-none me-1">
+                                                {{ tag.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                    <p class="card-text">{{ recommendation.article.excerpt|truncatewords:30 }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Personal Score: {{ recommendation.personal_score|floatformat:2 }}</span>
+                                    <div class="mt-1">
+                                        <small class="text-muted">{{ recommendation.confidence|floatformat:1 }}% confidence</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Why this for you?</h6>
+                                    <ul class="list-unstyled">
+                                        {% for reason in recommendation.personalized_reasons %}
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-success"></i> {{ reason }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Article Stats</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-eye"></i> {{ recommendation.article.views_count }} views
+                                        </small><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-heart"></i> {{ recommendation.article.likes_count }} likes
+                                        </small><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-comment"></i> {{ recommendation.article.comments_count }} comments
+                                        </small><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> {{ recommendation.article.reading_time }} min read
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> {{ recommendation.article.author.username }}
+                                        </small>
+                                        <div>
+                                            <a href="{% url 'article-detail' recommendation.article.slug %}" class="btn btn-primary btn-sm">
+                                                Read Now <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                            <button class="btn btn-outline-secondary btn-sm ms-2" 
+                                                    onclick="provideFeedback({{ recommendation.id }}, 'not_interested')">
+                                                Skip
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            {% if recommendation.article.featured_image %}
+                                <img src="{{ recommendation.article.featured_image.url }}" alt="{{ recommendation.article.title }}" 
+                                     class="img-fluid rounded mb-3" style="width: 100%; height: 200px; object-fit: cover;">
+                            {% endif %}
+                            
+                            <div class="text-center">
+                                <h6>Match Score</h6>
+                                <div class="circular-progress mb-2">
+                                    <div class="circular-progress-bar" style="background: conic-gradient(#28a745 {{ recommendation.personal_score|mul:3.6 }}deg, #e9ecef 0deg);">
+                                        <div class="circular-progress-inner">
+                                            {{ recommendation.personal_score|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Based on your reading history</small>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h6>Similar Readers Also Liked</h6>
+                                {% for similar_user in recommendation.similar_users_liked %}
+                                    <div class="mb-2 p-2 bg-light rounded">
+                                        <small>
+                                            <strong>{{ similar_user.username }}</strong> liked:
+                                            <a href="{% url 'article-detail' similar_user.article.slug %}" class="text-decoration-none">
+                                                {{ similar_user.article.title|truncatechars:30 }}
+                                            </a>
+                                        </small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No personalized recommendations yet</h4>
+                        <p class="text-muted">Read more articles to get personalized recommendations based on your interests!</p>
+                        <a href="{% url 'home' %}" class="btn btn-primary">
+                            <i class="fas fa-book"></i> Start Reading
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reading Pattern Analysis -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Your Reading Interests</h5>
+            </div>
+            <div class="card-body">
+                <div id="interestsChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> Your Reading Schedule</h5>
+            </div>
+            <div class="card-body">
+                <div id="scheduleChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Learning Path Suggestions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-graduation-cap"></i> Suggested Learning Path</h5>
+            </div>
+            <div class="card-body">
+                {% for path in learning_paths %}
+                    <div class="row mb-4 p-3 border rounded">
+                        <div class="col-md-8">
+                            <h6>{{ path.title }}</h6>
+                            <p class="text-muted">{{ path.description }}</p>
+                            <div class="mb-3">
+                                <h6>Recommended Articles:</h6>
+                                {% for article in path.articles %}
+                                    <div class="mb-2">
+                                        <span class="badge bg-secondary me-2">{{ forloop.counter }}</span>
+                                        <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                            {{ article.title|truncatechars:50 }}
+                                        </a>
+                                        <small class="text-muted">({{ article.reading_time }} min)</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Difficulty</h6>
+                                <div class="mb-3">
+                                    {% for i in path.difficulty|range %}
+                                        <i class="fas fa-star {% if i < path.difficulty %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <h6>Estimated Time</h6>
+                                <p class="text-primary">{{ path.total_time }} hours</p>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-play"></i> Start Path
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted">
+                        <p>No learning paths available yet. Read more articles to get personalized learning suggestions!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendation Quality -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Recommendation Quality Over Time</h5>
+            </div>
+            <div class="card-body">
+                <div id="qualityChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Reading Interests Chart
+const interestsData = {{ reading_interests_data|safe }};
+const interestsTrace = {
+    labels: interestsData.categories,
+    values: interestsData.counts,
+    type: 'pie',
+    name: 'Your Reading Interests'
+};
+const interestsLayout = {
+    title: 'Articles Read by Category',
+    height: 400
+};
+Plotly.newPlot('interestsChart', [interestsTrace], interestsLayout);
+
+// Reading Schedule Chart
+const scheduleData = {{ reading_schedule_data|safe }};
+const scheduleTrace = {
+    x: scheduleData.hours,
+    y: scheduleData.articles,
+    type: 'bar',
+    name: 'Articles Read',
+    marker: {color: '#007bff'}
+};
+const scheduleLayout = {
+    title: 'Your Reading Schedule',
+    xaxis: {title: 'Hour of Day'},
+    yaxis: {title: 'Number of Articles'}
+};
+Plotly.newPlot('scheduleChart', [scheduleTrace], scheduleLayout);
+
+// Recommendation Quality Chart
+const qualityData = {{ recommendation_quality_data|safe }};
+const qualityTrace = {
+    x: qualityData.dates,
+    y: qualityData.satisfaction_scores,
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Satisfaction Score',
+    line: {color: '#28a745'},
+    marker: {color: '#28a745', size: 6}
+};
+const qualityLayout = {
+    title: 'Recommendation Quality Over Time',
+    xaxis: {title: 'Date'},
+    yaxis: {title: 'Satisfaction Score (1-10)'}
+};
+Plotly.newPlot('qualityChart', [qualityTrace], qualityLayout);
+
+function provideFeedback(recommendationId, feedbackType) {
+    fetch(`/recommendations/feedback/${recommendationId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            feedback_type: feedbackType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.recommendation-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-left: 4px solid #007bff;
+}
+
+.circular-progress {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto;
+}
+
+.circular-progress-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circular-progress-inner {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.card-body {
+    min-height: 300px;
+}
+</style>
+{% endblock %}

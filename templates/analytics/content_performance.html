@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load article_filters %}
+
+{% block title %}Content Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-line"></i> Content Performance Analytics</h2>
+    </div>
+</div>
+
+<!-- Performance Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Avg. Views/Article</h5>
+                <h2 class="text-primary">{{ avg_views_per_article }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Avg. Engagement Rate</h5>
+                <h2 class="text-success">{{ avg_engagement_rate }}%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Top Performing</h5>
+                <h2 class="text-info">{{ top_performing_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Needs Improvement</h5>
+                <h2 class="text-warning">{{ needs_improvement_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-area"></i> Performance Over Time</h5>
+            </div>
+            <div class="card-body">
+                <div id="performanceChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Category Performance</h5>
+            </div>
+            <div class="card-body">
+                <div id="categoryPerformanceChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Performance Table -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-table"></i> Detailed Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Views</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Shares</th>
+                                <th>Engagement Rate</th>
+                                <th>Reading Time</th>
+                                <th>Performance</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for performance in content_performance %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'article-detail' performance.article.slug %}" class="text-decoration-none">
+                                            {{ performance.article.title|truncatechars:50 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ performance.article.author.username }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ performance.article.category.name }}</span>
+                                    </td>
+                                    <td>{{ performance.views_count }}</td>
+                                    <td>{{ performance.likes_count }}</td>
+                                    <td>{{ performance.comments_count }}</td>
+                                    <td>{{ performance.shares_count }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-{{ performance.engagement_rate|engagement_color }}" 
+                                                 style="width: {{ performance.engagement_rate|mul:100 }}%">
+                                                {{ performance.engagement_rate|mul:100|floatformat:1 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ performance.avg_reading_time }} min</td>
+                                    <td>
+                                        <span class="badge bg-{{ performance.performance_score|performance_color }}">
+                                            {{ performance.performance_score|floatformat:1 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if performance.trend == 'up' %}
+                                            <span class="text-success"><i class="fas fa-arrow-up"></i> Up</span>
+                                        {% elif performance.trend == 'down' %}
+                                            <span class="text-danger"><i class="fas fa-arrow-down"></i> Down</span>
+                                        {% else %}
+                                            <span class="text-muted"><i class="fas fa-minus"></i> Stable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted">No performance data available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performing Content -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-trophy"></i> Top Performing Articles</h5>
+            </div>
+            <div class="card-body">
+                {% for article in top_performing_articles %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                        <div>
+                            <h6>
+                                <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                    {{ article.title|truncatechars:40 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ article.category.name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-success">{{ article.performance_score|floatformat:1 }}</div>
+                            <small class="d-block text-muted">{{ article.views_count }} views</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No top performing articles yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-triangle"></i> Content Needing Improvement</h5>
+            </div>
+            <div class="card-body">
+                {% for article in needs_improvement %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                        <div>
+                            <h6>
+                                <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                    {{ article.title|truncatechars:40 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ article.category.name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-warning">{{ article.performance_score|floatformat:1 }}</div>
+                            <small class="d-block text-muted">{{ article.views_count }} views</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">All content is performing well!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Insights -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-lightbulb"></i> Category Insights</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for insight in category_insights %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ insight.category.name }}</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">{{ insight.article_count }} articles</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Avg Performance</small>
+                                        <span class="badge bg-info">{{ insight.avg_performance|floatformat:1 }}</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">{{ insight.insight }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12 text-center text-muted">
+                            <p>No category insights available yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Performance Over Time
+const performanceData = {{ performance_over_time_data|safe }};
+const performanceTrace = {
+    x: performanceData.dates,
+    y: performanceData.scores,
+    type: 'scatter',
+    mode: 'lines',
+    name: 'Performance Score',
+    line: {color: '#007bff'}
+};
+const performanceLayout = {
+    title: 'Content Performance Over Time',
+    xaxis: {title: 'Date'},
+    yaxis: {title: 'Performance Score'}
+};
+Plotly.newPlot('performanceChart', [performanceTrace], performanceLayout);
+
+// Category Performance
+const categoryPerfData = {{ category_performance_data|safe }};
+const categoryPerfTrace = {
+    x: categoryPerfData.categories,
+    y: categoryPerfData.scores,
+    type: 'bar',
+    name: 'Avg Performance Score',
+    marker: {color: '#28a745'}
+};
+const categoryPerfLayout = {
+    title: 'Average Performance by Category',
+    xaxis: {title: 'Category'},
+    yaxis: {title: 'Performance Score'}
+};
+Plotly.newPlot('categoryPerformanceChart', [categoryPerfTrace], categoryPerfLayout);
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress {
+    background-color: #e9ecef;
+}
+.progress-bar {
+    transition: width 0.6s ease;
+}
+.card-body {
+    min-height: 300px;
+}
+</style>
+{% endblock %}

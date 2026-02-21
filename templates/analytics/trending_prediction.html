@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load article_filters %}
+
+{% block title %}Trending Prediction{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-crystal-ball"></i> Trending Prediction</h2>
+    </div>
+</div>
+
+<!-- Prediction Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Current Trending</h5>
+                <h2 class="text-danger">{{ current_trending_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Predicted to Trend</h5>
+                <h2 class="text-warning">{{ predicted_trending_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Prediction Accuracy</h5>
+                <h2 class="text-success">{{ prediction_accuracy }}%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Avg. Prediction Score</h5>
+                <h2 class="text-info">{{ avg_prediction_score }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trending Prediction Chart -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Trending Predictions Over Time</h5>
+            </div>
+            <div class="card-body">
+                <div id="trendingChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Trending Articles -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-fire"></i> Currently Trending</h5>
+            </div>
+            <div class="card-body">
+                {% for article in currently_trending %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                        <div>
+                            <h6>
+                                <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                    {{ article.title|truncatechars:45 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ article.category.name }} • {{ article.author.username }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-danger">Score: {{ article.trendingscore.score|floatformat:1 }}</div>
+                            <small class="d-block text-muted">{{ article.views_count }} views</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No articles are currently trending.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-rocket"></i> Predicted to Trend</h5>
+            </div>
+            <div class="card-body">
+                {% for prediction in predicted_to_trend %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                        <div>
+                            <h6>
+                                <a href="{% url 'article-detail' prediction.article.slug %}" class="text-decoration-none">
+                                    {{ prediction.article.title|truncatechars:45 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ prediction.article.category.name }} • {{ prediction.article.author.username }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-warning">Score: {{ prediction.predicted_score|floatformat:1 }}</div>
+                            <small class="d-block text-muted">{{ prediction.article.views_count }} views</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No articles predicted to trend in the near future.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Factors -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-brain"></i> Prediction Factors Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Key Trending Factors</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Factor</th>
+                                        <th>Weight</th>
+                                        <th>Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Views Velocity</td>
+                                        <td>40%</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-primary" style="width: 40%">
+                                                    High
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Likes Velocity</td>
+                                        <td>30%</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-success" style="width: 30%">
+                                                    Medium
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Comments Velocity</td>
+                                        <td>20%</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-info" style="width: 20%">
+                                                    Medium
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Engagement Rate</td>
+                                        <td>10%</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-warning" style="width: 10%">
+                                                    Low
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Prediction Accuracy</h6>
+                        <div id="accuracyChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historical Predictions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Historical Prediction Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Predicted Score</th>
+                                <th>Actual Score</th>
+                                <th>Accuracy</th>
+                                <th>Prediction Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in historical_predictions %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'article-detail' prediction.article.slug %}" class="text-decoration-none">
+                                            {{ prediction.article.title|truncatechars:40 }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ prediction.predicted_score|floatformat:1 }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ prediction.actual_score|floatformat:1 }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-{{ prediction.accuracy|accuracy_color }}" 
+                                                 style="width: {{ prediction.accuracy }}%">
+                                                {{ prediction.accuracy|floatformat:1 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ prediction.prediction_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if prediction.status == 'correct' %}
+                                            <span class="badge bg-success">Correct</span>
+                                        {% elif prediction.status == 'partially_correct' %}
+                                            <span class="badge bg-warning">Partially Correct</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Incorrect</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No historical prediction data available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Insights -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-lightbulb"></i> Model Insights</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6>Best Prediction Window</h6>
+                                <h4 class="text-primary">{{ best_prediction_window }} hours</h4>
+                                <small class="text-muted">Optimal time for trending prediction</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6>Model Confidence</h6>
+                                <h4 class="text-success">{{ model_confidence }}%</h4>
+                                <small class="text-muted">Average prediction confidence</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6>False Positive Rate</h6>
+                                <h4 class="text-danger">{{ false_positive_rate }}%</h4>
+                                <small class="text-muted">Articles predicted to trend but didn't</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Trending Predictions Chart
+const trendingData = {{ trending_predictions_data|safe }};
+const trendingTrace = {
+    x: trendingData.dates,
+    y: trendingData.predicted_scores,
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Predicted Scores',
+    line: {color: '#ffc107'},
+    marker: {color: '#ffc107', size: 6}
+};
+
+const actualTrace = {
+    x: trendingData.dates,
+    y: trendingData.actual_scores,
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Actual Scores',
+    line: {color: '#28a745'},
+    marker: {color: '#28a745', size: 6}
+};
+
+const trendingLayout = {
+    title: 'Trending Predictions vs Actual Performance',
+    xaxis: {title: 'Date'},
+    yaxis: {title: 'Trending Score'},
+    hovermode: 'x unified'
+};
+
+Plotly.newPlot('trendingChart', [trendingTrace, actualTrace], trendingLayout);
+
+// Accuracy Chart
+const accuracyData = {{ accuracy_data|safe }};
+const accuracyTrace = {
+    x: accuracyData.periods,
+    y: accuracyData.accuracies,
+    type: 'bar',
+    name: 'Prediction Accuracy',
+    marker: {color: '#007bff'}
+};
+const accuracyLayout = {
+    title: 'Prediction Accuracy Over Time',
+    xaxis: {title: 'Time Period'},
+    yaxis: {title: 'Accuracy (%)'}
+};
+Plotly.newPlot('accuracyChart', [accuracyTrace], accuracyLayout);
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress {
+    background-color: #e9ecef;
+}
+.progress-bar {
+    transition: width 0.6s ease;
+}
+.card-body {
+    min-height: 300px;
+}
+</style>
+{% endblock %}

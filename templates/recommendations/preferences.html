@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load article_filters %}
+
+{% block title %}Recommendation Preferences{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-cog"></i> Recommendation Preferences</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-sliders-h"></i> Customize Your Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'recommendation-preferences' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="content_types" class="form-label">Preferred Content Types</label>
+                        <select class="form-select" id="content_types" name="content_types" multiple>
+                            <option value="tutorial" {% if 'tutorial' in user_preferences.content_types %}selected{% endif %}>Tutorials</option>
+                            <option value="news" {% if 'news' in user_preferences.content_types %}selected{% endif %}>News</option>
+                            <option value="opinion" {% if 'opinion' in user_preferences.content_types %}selected{% endif %}>Opinion</option>
+                            <option value="research" {% if 'research' in user_preferences.content_types %}selected{% endif %}>Research</option>
+                        </select>
+                        <small class="form-text text-muted">Select multiple content types you prefer</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reading_level" class="form-label">Reading Level</label>
+                        <select class="form-select" id="reading_level" name="reading_level">
+                            <option value="beginner" {% if user_preferences.reading_level == 'beginner' %}selected{% endif %}>Beginner</option>
+                            <option value="intermediate" {% if user_preferences.reading_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                            <option value="advanced" {% if user_preferences.reading_level == 'advanced' %}selected{% endif %}>Advanced</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="max_recommendations" class="form-label">Max Recommendations per Day</label>
+                        <input type="number" class="form-control" id="max_recommendations" name="max_recommendations" 
+                               value="{{ user_preferences.max_recommendations|default:10 }}" min="1" max="50">
+                        <small class="form-text text-muted">How many recommendations you want to see daily</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Preferences
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> How It Works</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Our recommendation system uses machine learning to suggest articles based on:
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Your reading history</li>
+                    <li><i class="fas fa-check text-success"></i> Articles you've liked</li>
+                    <li><i class="fas fa-check text-success"></i> Topics you follow</li>
+                    <li><i class="fas fa-check text-success"></i> Similar users' preferences</li>
+                </ul>
+                <p class="text-muted">
+                    Adjust these preferences to fine-tune your recommendations.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Your Recommendation Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary">85%</h4>
+                            <p class="text-muted">Accuracy Rate</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success">72%</h4>
+                            <p class="text-muted">Click Rate</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-info">4.2</h4>
+                            <p class="text-muted">Avg. Rating</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-warning">156</h4>
+                            <p class="text-muted">Total Clicked</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Recent Recommendation Feedback</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Your Feedback</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Getting Started with Django</td>
+                                <td><span class="badge bg-success">Helpful</span></td>
+                                <td>2 hours ago</td>
+                            </tr>
+                            <tr>
+                                <td>Advanced Python Techniques</td>
+                                <td><span class="badge bg-warning">Not Interested</span></td>
+                                <td>1 day ago</td>
+                            </tr>
+                            <tr>
+                                <td>Machine Learning Basics</td>
+                                <td><span class="badge bg-success">Helpful</span></td>
+                                <td>2 days ago</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        background-color: var(--card-light);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    [data-theme="dark"] .form-container {
+        background-color: var(--card-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    .form-header {
+        background-color: var(--card-light);
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .form-header {
+        background-color: var(--accent-dark) !important;
+        border-bottom: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    .form-label {
+        color: var(--text-light) !important;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    [data-theme="dark"] .form-label {
+        color: var(--text-dark) !important;
+    }
+    
+    .form-control {
+        background-color: var(--card-light) !important;
+        border: 1px solid var(--border-light) !important;
+        color: var(--text-light) !important;
+        transition: all 0.3s ease;
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--accent-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    .form-control:focus {
+        background-color: var(--card-light) !important;
+        border-color: var(--primary-color) !important;
+        color: var(--text-light) !important;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+    
+    [data-theme="dark"] .form-control:focus {
+        background-color: var(--accent-dark) !important;
+        border-color: var(--primary-color) !important;
+        color: var(--text-dark) !important;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+    
+    .form-text {
+        color: var(--text-light) !important;
+        font-size: 0.875rem;
+    }
+    
+    [data-theme="dark"] .form-text {
+        color: #b0b3b8 !important;
+    }
+    
+    .text-danger {
+        color: #dc3545 !important;
+    }
+    
+    [data-theme="dark"] .text-danger {
+        color: #ff6b6b !important;
+    }
+    
+    .sidebar-card {
+        background-color: var(--card-light);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    [data-theme="dark"] .sidebar-card {
+        background-color: var(--card-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    .sidebar-title {
+        color: var(--text-light) !important;
+        font-weight: 600;
+    }
+    
+    [data-theme="dark"] .sidebar-title {
+        color: var(--text-dark) !important;
+    }
+    
+    .sidebar-content {
+        color: var(--text-light) !important;
+    }
+    
+    [data-theme="dark"] .sidebar-content {
+        color: var(--text-dark) !important;
+    }
+    
+    .sidebar-list {
+        color: var(--text-light) !important;
+    }
+    
+    [data-theme="dark"] .sidebar-list {
+        color: var(--text-dark) !important;
+    }
+    
+    .sidebar-list li {
+        color: var(--text-light) !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    [data-theme="dark"] .sidebar-list li {
+        color: var(--text-dark) !important;
+    }
+    
+    /* Ensure all form elements are themed */
+    [data-theme="dark"] input,
+    [data-theme="dark"] textarea,
+    [data-theme="dark"] select {
+        background-color: var(--accent-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    [data-theme="dark"] input:focus,
+    [data-theme="dark"] textarea:focus,
+    [data-theme="dark"] select:focus {
+        background-color: var(--accent-dark) !important;
+        border-color: var(--primary-color) !important;
+        color: var(--text-dark) !important;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+    }
+    
+    /* Fix for Django form widgets */
+    [data-theme="dark"] .form-control::placeholder {
+        color: #b0b3b8 !important;
+    }
+    
+    [data-theme="dark"] select option {
+        background-color: var(--accent-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    [data-theme="dark"] .form-check-input {
+        background-color: var(--accent-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+    }
+    
+    [data-theme="dark"] .form-check-input:checked {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    
+    [data-theme="dark"] .form-check-label {
+        color: var(--text-dark) !important;
+    }
+    
+    /* Tags checkbox list styling */
+    .tag-checkbox-list {
+        background-color: var(--card-light) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        max-height: 200px !important;
+        overflow-y: auto !important;
+    }
+    
+    [data-theme="dark"] .tag-checkbox-list {
+        background-color: var(--card-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+        color: var(--text-dark) !important;
+    }
+    
+    .tag-checkbox-list li {
+        margin-bottom: 0.5rem !important;
+        padding: 0.25rem 0 !important;
+        border-bottom: 1px solid var(--border-light) !important;
+    }
+    
+    [data-theme="dark"] .tag-checkbox-list li {
+        border-bottom-color: var(--border-dark) !important;
+    }
+    
+    .tag-checkbox-list li:last-child {
+        border-bottom: none !important;
+    }
+    
+    .tag-checkbox-list label {
+        color: var(--text-light) !important;
+        font-weight: 500 !important;
+        margin-left: 0.5rem !important;
+        cursor: pointer !important;
+    }
+    
+    [data-theme="dark"] .tag-checkbox-list label {
+        color: var(--text-dark) !important;
+    }
+    
+    .tag-checkbox-list input[type="checkbox"] {
+        margin-right: 0.5rem !important;
+    }
+    
+    [data-theme="dark"] .tag-checkbox-list input[type="checkbox"] {
+        background-color: var(--accent-dark) !important;
+        border: 1px solid var(--border-dark) !important;
+    }
+    
+    .tag-checkbox-list input[type="checkbox"]:checked {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-container">
+            <div class="card-header form-header">
+                <h4><i class="fas fa-pen"></i> {{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">
+                                {{ form.title.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.excerpt.id_for_label }}" class="form-label">Excerpt</label>
+                        {{ form.excerpt }}
+                        <small class="form-text text-muted">Brief description of your article (max 200 characters)</small>
+                        {% if form.excerpt.errors %}
+                            <div class="text-danger">
+                                {{ form.excerpt.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger">
+                                {{ form.content.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger">
+                                        {{ form.category.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                                <div class="tags-container">
+                                    {{ form.tags }}
+                                </div>
+                                <small class="form-text text-muted">Select multiple tags for your article</small>
+                                {% if form.tags.errors %}
+                                    <div class="text-danger">
+                                        {{ form.tags.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.featured_image.id_for_label }}" class="form-label">Featured Image</label>
+                        {{ form.featured_image }}
+                        <small class="form-text text-muted">Optional: Upload an image for your article</small>
+                        {% if form.featured_image.errors %}
+                            <div class="text-danger">
+                                {{ form.featured_image.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.is_featured }}
+                                    <label for="{{ form.is_featured.id_for_label }}" class="form-check-label">
+                                        Featured Article
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.is_trending }}
+                                    <label for="{{ form.is_trending.id_for_label }}" class="form-check-label">
+                                        Trending Article
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.reading_time.id_for_label }}" class="form-label">Reading Time (minutes)</label>
+                        {{ form.reading_time }}
+                        <small class="form-text text-muted">Estimated reading time in minutes</small>
+                        {% if form.reading_time.errors %}
+                            <div class="text-danger">
+                                {{ form.reading_time.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                        {{ form.status }}
+                        <small class="form-text text-muted">Choose article status</small>
+                        {% if form.status.errors %}
+                            <div class="text-danger">
+                                {{ form.status.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Publish Article
+                        </button>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Writing Tips -->
+        <div class="card sidebar-card mb-4">
+            <div class="card-header form-header">
+                <h5 class="sidebar-title"><i class="fas fa-lightbulb"></i> Writing Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="sidebar-content">
+                    <ul class="sidebar-list">
+                        <li>Start with a compelling title that grabs attention</li>
+                        <li>Write in a clear, conversational tone</li>
+                        <li>Use short paragraphs for better readability</li>
+                        <li>Include relevant examples and data</li>
+                        <li>Proofread carefully before publishing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Guidelines -->
+        <div class="card sidebar-card mb-4">
+            <div class="card-header form-header">
+                <h5 class="sidebar-title"><i class="fas fa-clipboard-list"></i> Content Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <div class="sidebar-content">
+                    <ul class="sidebar-list">
+                        <li>Content must be original and well-researched</li>
+                        <li>Use proper headings and formatting</li>
+                        <li>Include relevant images and media</li>
+                        <li>Add appropriate tags and categories</li>
+                        <li>Follow our community guidelines</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card sidebar-card">
+            <div class="card-header form-header">
+                <h5 class="sidebar-title"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="sidebar-content">
+                    <a href="{% url 'article-list' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                        <i class="fas fa-list"></i> View All Articles
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-home"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        background-color: var(--card-light);
+        border: 1px solid var(--border-light);
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--card-dark);
+        border: 1px solid var(--border-dark);
+        color: var(--text-dark);
+    }
+    
+    .form-control:focus {
+        background-color: var(--card-light);
+        border-color: var(--primary-color);
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .form-control:focus {
+        background-color: var(--card-dark);
+        border-color: var(--primary-color);
+        color: var(--text-dark);
+    }
+    
+    .form-label {
+        color: var(--text-light);
+        font-weight: 600;
+    }
+    
+    [data-theme="dark"] .form-label {
+        color: var(--text-dark);
+    }
+    
+    .form-text {
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .form-text {
+        color: var(--text-dark);
+    }
+</style>
+{% endblock %}

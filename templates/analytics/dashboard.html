@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load article_filters %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-bar"></i> Analytics Dashboard</h2>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Articles</h5>
+                <h2 class="text-primary">{{ total_articles }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Users</h5>
+                <h2 class="text-success">{{ total_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Views</h5>
+                <h2 class="text-info">{{ total_views }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Likes</h5>
+                <h2 class="text-danger">{{ total_likes }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Article Views Over Time</h5>
+            </div>
+            <div class="card-body">
+                <div id="viewsChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Articles by Category</h5>
+            </div>
+            <div class="card-body">
+                <div id="categoryChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Content -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-fire"></i> Trending Articles</h5>
+            </div>
+            <div class="card-body">
+                {% for article in trending_articles %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6><a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">{{ article.title }}</a></h6>
+                            <small class="text-muted">{{ article.views_count }} views • {{ article.likes_count }} likes</small>
+                        </div>
+                        <span class="badge bg-danger">Score: {{ article.trendingscore.score|floatformat:1 }}</span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No trending articles yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-trophy"></i> Top Writers</h5>
+            </div>
+            <div class="card-body">
+                {% for writer in top_writers %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6>{{ writer.username }}</h6>
+                            <small class="text-muted">{{ writer.writerprofile.total_articles_published }} articles</small>
+                        </div>
+                        <span class="badge bg-primary">Score: {{ writer.writerprofile.writer_score|floatformat:1 }}</span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No writers found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Activity -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-users"></i> Recent User Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Article</th>
+                                <th>Time</th>
+                                <th>Session</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for behavior in recent_behaviors %}
+                                <tr>
+                                    <td>
+                                        {% if behavior.user %}
+                                            {{ behavior.user.username }}
+                                        {% else %}
+                                            <em>Anonymous</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ behavior.action_type|action_color }}">
+                                            {{ behavior.get_action_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'article-detail' behavior.article.slug %}" class="text-decoration-none">
+                                            {{ behavior.article.title|truncatechars:50 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ behavior.timestamp|date:"M d, Y H:i" }}</td>
+                                    <td>{{ behavior.session_id|truncatechars:10 }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No recent activity found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-area"></i> Reading Patterns</h5>
+            </div>
+            <div class="card-body">
+                <div id="readingPatternsChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bullseye"></i> Content Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Views</th>
+                                <th>Likes</th>
+                                <th>Comments</th>
+                                <th>Engagement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for performance in top_performing %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'article-detail' performance.article.slug %}" class="text-decoration-none">
+                                            {{ performance.article.title|truncatechars:40 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ performance.views_count }}</td>
+                                    <td>{{ performance.likes_count }}</td>
+                                    <td>{{ performance.comments_count }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" style="width: {{ performance.engagement_rate|mul:100 }}%">
+                                                {{ performance.engagement_rate|mul:100|floatformat:1 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No performance data available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Article Views Chart
+const viewsData = {{ views_chart_data|safe }};
+const viewsTrace = {
+    x: viewsData.dates,
+    y: viewsData.views,
+    type: 'scatter',
+    mode: 'lines',
+    name: 'Views',
+    line: {color: '#007bff'}
+};
+const viewsLayout = {
+    title: 'Article Views Over Time',
+    xaxis: {title: 'Date'},
+    yaxis: {title: 'Number of Views'}
+};
+Plotly.newPlot('viewsChart', [viewsTrace], viewsLayout);
+
+// Category Distribution Chart
+const categoryData = {{ category_chart_data|safe }};
+const categoryTrace = {
+    labels: categoryData.categories,
+    values: categoryData.counts,
+    type: 'pie',
+    name: 'Articles by Category'
+};
+const categoryLayout = {
+    title: 'Articles by Category',
+    height: 400
+};
+Plotly.newPlot('categoryChart', [categoryTrace], categoryLayout);
+
+// Reading Patterns Chart
+const readingData = {{ reading_patterns_data|safe }};
+const readingTrace = {
+    x: readingData.hours,
+    y: readingData.reading_time,
+    type: 'bar',
+    name: 'Reading Time (minutes)',
+    marker: {color: '#28a745'}
+};
+const readingLayout = {
+    title: 'Reading Patterns by Hour',
+    xaxis: {title: 'Hour of Day'},
+    yaxis: {title: 'Average Reading Time (minutes)'}
+};
+Plotly.newPlot('readingPatternsChart', [readingTrace], readingLayout);
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress {
+    background-color: #e9ecef;
+}
+.progress-bar {
+    transition: width 0.6s ease;
+}
+.card-body {
+    min-height: 300px;
+}
+</style>
+{% endblock %}

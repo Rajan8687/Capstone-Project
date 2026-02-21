@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .card {
+        background: var(--card-light);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 1;
+    }
+    
+    [data-theme="dark"] .card {
+        background: var(--card-dark);
+        border: 1px solid var(--border-dark);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), #0056b3);
+        color: white;
+        padding: 1rem;
+        border-radius: 12px 12px 0;
+        margin: -1rem 1.5rem -1rem -1rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .card-body {
+        color: var(--text-dark);
+    }
+    
+    [data-theme="dark"] .card-body p {
+        color: var(--text-dark);
+    }
+    
+    [data-theme="dark"] .card-body strong {
+        color: var(--text-dark);
+    }
+    
+    .form-label {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    [data-theme="dark"] .form-label {
+        color: var(--text-dark);
+    }
+    
+    .form-control {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-light);
+        color: var(--text-light);
+        border-radius: 6px;
+        padding: 0.75rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-dark);
+        color: var(--text-dark);
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        transform: translateY(-1px);
+    }
+    
+    .account-info {
+        background: var(--bg-light);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    [data-theme="dark"] .account-info {
+        background: var(--card-dark);
+        border: 1px solid var(--border-dark);
+    }
+    
+    .account-info p {
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .account-info p {
+        color: var(--text-dark);
+    }
+    
+    .writer-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        background: var(--card-light);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    [data-theme="dark"] .stat-item {
+        background: var(--card-dark);
+        border: 1px solid var(--border-dark);
+    }
+    
+    .stat-item strong {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    [data-theme="dark"] .stat-item strong {
+        color: var(--primary-color);
+    }
+    
+    .alert {
+        background-color: var(--card-light);
+        border: 1px solid var(--border-light);
+        color: var(--text-light);
+    }
+    
+    [data-theme="dark"] .alert {
+        background-color: var(--card-dark);
+        border: 1px solid var(--border-dark);
+        color: var(--text-dark);
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    [data-theme="dark"] .alert-danger {
+        background-color: #4a1f1f;
+        border-color: #6b2c2c;
+        color: #ff6b6b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user"></i> Profile</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'update_profile' %}">
+                            {% csrf_token %}
+                            {% if user_form.errors %}
+                                <div class="alert alert-danger">
+                                    {{ user_form.errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                        {{ user_form.first_name }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                        {{ user_form.last_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ user_form.email }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ user_form.bio.id_for_label }}" class="form-label">Bio</label>
+                                {{ user_form.bio }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ user_form.website.id_for_label }}" class="form-label">Website</label>
+                                        {{ user_form.website }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ user_form.twitter.id_for_label }}" class="form-label">Twitter</label>
+                                        {{ user_form.twitter }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ user_form.linkedin.id_for_label }}" class="form-label">LinkedIn</label>
+                                        {{ user_form.linkedin }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Account Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                        <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+                        <p><strong>Member since:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                
+                {% if user.is_writer %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Writer Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Articles Published:</strong> {{ user.writerprofile.total_articles_published }}</p>
+                        <p><strong>Total Views:</strong> {{ user.writerprofile.total_views }}</p>
+                        <p><strong>Total Likes:</strong> {{ user.writerprofile.total_likes }}</p>
+                        <p><strong>Writer Score:</strong> {{ user.writerprofile.writer_score|floatformat:2 }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.is_reader %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Reader Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Articles Read:</strong> {{ user.readerprofile.total_articles_read }}</p>
+                        <p><strong>Reading Time:</strong> {{ user.readerprofile.total_reading_time }} minutes</p>
+                        <p><strong>Last Active:</strong> {{ user.readerprofile.last_active|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

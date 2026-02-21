@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Articles{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-folder"></i> {{ category.name }}</h2>
+            <div>
+                {% if user.is_authenticated and user.is_writer %}
+                    <a href="{% url 'article-create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Article
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if category.description %}
+            <div class="alert alert-info">
+                {{ category.description }}
+            </div>
+        {% endif %}
+        
+        <div class="mb-3">
+            <h5>{{ articles|length }} articles in this category</h5>
+        </div>
+        
+        {% for article in articles %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">
+                                <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                    {{ article.title }}
+                                </a>
+                            </h5>
+                            <div class="mb-2">
+                                {% for tag in article.tags.all %}
+                                    <a href="{% url 'tag-detail' tag.slug %}" class="badge bg-secondary text-decoration-none me-1">
+                                        {{ tag.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                            <p class="card-text">{{ article.excerpt|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> {{ article.author.username }} • 
+                                    <i class="fas fa-calendar"></i> {{ article.created_at|date:"M d, Y" }} • 
+                                    <i class="fas fa-clock"></i> {{ article.reading_time }} min read
+                                </small>
+                                <div>
+                                    {% if article.is_featured %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-star"></i> Featured
+                                        </span>
+                                    {% endif %}
+                                    {% if article.is_trending %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-fire"></i> Trending
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if article.featured_image %}
+                            <div class="ms-3">
+                                <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" 
+                                     class="img-fluid rounded" style="max-width: 200px; height: 120px; object-fit: cover;">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">
+                                <i class="fas fa-eye"></i> {{ article.views_count }} views
+                            </span>
+                            <span class="text-muted ms-3">
+                                <i class="fas fa-heart"></i> {{ article.likes_count }} likes
+                            </span>
+                            <span class="text-muted ms-3">
+                                <i class="fas fa-comment"></i> {{ article.comments_count }} comments
+                            </span>
+                        </div>
+                        <a href="{% url 'article-detail' article.slug %}" class="btn btn-outline-primary btn-sm">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No articles found in this category</h4>
+                <p class="text-muted">Be the first to write an article in {{ category.name }}!</p>
+                {% if user.is_authenticated and user.is_writer %}
+                    <a href="{% url 'article-create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Write First Article
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Article pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Categories Sidebar -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-folder"></i> Categories</h5>
+            </div>
+            <div class="card-body">
+                {% for cat in categories %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <a href="{% url 'category-detail' cat.slug %}" class="text-decoration-none">
+                            {{ cat.name }}
+                        </a>
+                        <span class="badge bg-primary">{{ cat.article_set.count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Popular Tags -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-tags"></i> Popular Tags</h5>
+            </div>
+            <div class="card-body">
+                {% for tag in popular_tags %}
+                    <a href="{% url 'tag-detail' tag.slug %}" class="badge bg-secondary text-decoration-none me-2 mb-2">
+                        {{ tag.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Trending Articles -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-fire"></i> Trending Articles</h5>
+            </div>
+            <div class="card-body">
+                {% for trending_article in trending_articles %}
+                    <div class="mb-3">
+                        <h6>
+                            <a href="{% url 'article-detail' trending_article.slug %}" class="text-decoration-none">
+                                {{ trending_article.title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            {{ trending_article.views_count }} views • {{ trending_article.likes_count }} likes
+                        </small>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
