@@ -240,9 +240,6 @@ This project demonstrates:
 5. Submit a pull request
 
 ## 📄 License
-
-This project is for educational purposes only.
-
 ---
 
 **Built with ❤️ for data science learning**
