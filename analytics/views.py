@@ -33,8 +33,60 @@ class AnalyticsDashboardView(LoginRequiredMixin, TemplateView):
             article_count=Count('articles', filter=Q(articles__status='published'))
         ).order_by('-article_count')[:5]
         
-        # Recent activity
+        # Recent activity - renamed to match template
         context['recent_activity'] = UserBehavior.objects.select_related('user', 'article').order_by('-timestamp')[:10]
+        context['recent_behaviors'] = context['recent_activity']  # Alias for template compatibility
+        
+        # Trending articles - get from TrendingScore model
+        trending_scores = TrendingScore.objects.select_related('article').filter(
+            article__status='published'
+        ).order_by('-score')[:10]
+        context['trending_articles'] = [ts.article for ts in trending_scores]
+        context['trending_scores'] = {ts.article.id: ts.score for ts in trending_scores}
+        
+        # Top writers - add missing context
+        context['top_writers'] = User.objects.filter(
+            role='writer'
+        ).select_related('writerprofile').order_by('-writerprofile__writer_score')[:10]
+        
+        # Top performing articles - add missing context
+        context['top_performing'] = Article.objects.filter(
+            status='published'
+        ).order_by('-views_count')[:10]
+        
+        # Chart data - add missing chart data
+        import json
+        from datetime import datetime, timedelta
+        
+        # Views chart data (last 30 days)
+        last_30_days = timezone.now() - timedelta(days=30)
+        articles_by_date = Article.objects.filter(
+            created_at__gte=last_30_days
+        ).extra(select={'date': 'DATE(created_at)'}).values('date').annotate(count=Count('id'))
+        
+        dates = []
+        counts = []
+        for item in articles_by_date:
+            dates.append(str(item['date']))
+            counts.append(item['count'])
+        
+        context['views_chart_data'] = json.dumps({'dates': dates, 'views': counts})
+        
+        # Category chart data
+        categories = Category.objects.annotate(
+            count=Count('articles', filter=Q(articles__status='published'))
+        ).filter(count__gt=0)[:10]
+        
+        context['category_chart_data'] = json.dumps({
+            'categories': [c.name for c in categories],
+            'counts': [c.count for c in categories]
+        })
+        
+        # Reading patterns data
+        context['reading_patterns_data'] = json.dumps({
+            'hours': list(range(24)),
+            'reading_time': [0] * 24  # Placeholder data
+        })
         
         return context
 

@@ -56,7 +56,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.is_writer:
+        # Show writer dashboard for both writers and admins
+        if user.is_writer or user.is_admin_user:
             writer_profile = getattr(user, 'writerprofile', None)
             
             # Get ALL YOUR articles (regardless of status)
@@ -100,8 +101,36 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_form = UserUpdateForm(instance=self.request.user)
+        user = self.request.user
+        
+        # User form for profile editing
+        user_form = UserUpdateForm(instance=user)
         context['user_form'] = user_form
+        
+        # User statistics
+        from articles.models import Article
+        from analytics.models import UserBehavior
+        
+        # Get user's articles
+        user_articles = Article.objects.filter(author=user)
+        context['total_articles'] = user_articles.count()
+        context['published_articles'] = user_articles.filter(status='published').count()
+        context['draft_articles'] = user_articles.filter(status='draft').count()
+        context['archived_articles'] = user_articles.filter(status='archived').count()
+        
+        # Get reading statistics
+        user_behavior = UserBehavior.objects.filter(user=user)
+        context['total_views'] = sum(behavior.article.views_count for behavior in user_behavior if behavior.article)
+        context['articles_read'] = user_behavior.filter(action_type='view').count()
+        
+        # User profile information
+        if hasattr(user, 'writerprofile'):
+            writer_profile = user.writerprofile
+            context['writer_profile'] = writer_profile
+        else:
+            reader_profile = getattr(user, 'readerprofile', None)
+            context['reader_profile'] = reader_profile
+        
         return context
 
 
@@ -113,10 +142,17 @@ def update_profile(request):
         if user_form.is_valid():
             user_form.save()
             messages.success(request, 'Profile updated successfully!')
-            return redirect('profile')
+            
+            # If password was changed, log user out and redirect to login
+            if user_form.cleaned_data.get('new_password'):
+                messages.info(request, 'Password changed! Please log in with your new password.')
+                return redirect('login')
+            else:
+                return redirect('profile')
     else:
         user_form = UserUpdateForm(instance=request.user)
     
     return render(request, 'accounts/profile.html', {
         'user_form': user_form,
+        'user': request.user,  # Ensure user context is passed
     })

@@ -84,7 +84,7 @@
                             <h6><a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">{{ article.title }}</a></h6>
                             <small class="text-muted">{{ article.views_count }} views • {{ article.likes_count }} likes</small>
                         </div>
-                        <span class="badge bg-danger">Score: {{ article.trendingscore.score|floatformat:1 }}</span>
+                        <span class="badge bg-danger">Score: {% if article.id in trending_scores %}{{ trending_scores|get_item:article.id|floatformat:1 }}{% else %}N/A{% endif %}</span>
                     </div>
                 {% empty %}
                     <p class="text-muted">No trending articles yet.</p>
@@ -199,21 +199,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for performance in top_performing %}
+                            {% for article in top_performing %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'article-detail' performance.article.slug %}" class="text-decoration-none">
-                                            {{ performance.article.title|truncatechars:40 }}
+                                        <a href="{% url 'article-detail' article.slug %}" class="text-decoration-none">
+                                            {{ article.title|truncatechars:40 }}
                                         </a>
                                     </td>
-                                    <td>{{ performance.views_count }}</td>
-                                    <td>{{ performance.likes_count }}</td>
-                                    <td>{{ performance.comments_count }}</td>
+                                    <td>{{ article.views_count }}</td>
+                                    <td>{{ article.likes_count }}</td>
+                                    <td>{{ article.comments_count }}</td>
                                     <td>
                                         <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-success" style="width: {{ performance.engagement_rate|mul:100 }}%">
-                                                {{ performance.engagement_rate|mul:100|floatformat:1 }}%
+                                            {% with engagement=article.likes_count|add:article.comments_count %}
+                                            <div class="progress-bar bg-success" style="width: {% if article.views_count > 0 %}{{ engagement|div:article.views_count|mul:100 }}{% else %}0{% endif %}%">
+                                                {% if article.views_count > 0 %}{{ engagement|div:article.views_count|mul:100|floatformat:1 }}{% else %}0.0{% endif %}%
                                             </div>
+                                            {% endwith %}
                                         </div>
                                     </td>
                                 </tr>

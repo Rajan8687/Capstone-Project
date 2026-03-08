@@ -77,7 +77,14 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            # Check if slug exists and make it unique
+            while Article.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
         
         # Auto-generate excerpt if not provided
         if not self.excerpt and self.content:
@@ -102,6 +109,10 @@ class Article(models.Model):
             return 0
         return round((self.likes_count / self.views_count) * 100, 2)
 
+    def get_actual_likes_count(self):
+        """Get the actual count of likes from the database"""
+        return self.likes.filter().count()
+
     def get_engagement_score(self):
         """Calculate engagement score (likes + comments) / views"""
         if self.views_count == 0:
@@ -117,6 +128,10 @@ class Like(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        unique_together = ['user', 'article']  # Prevent duplicate likes
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'article'], name='unique_user_article_like')
+        ]
     
     def __str__(self):
         return f"{self.user.username} likes {self.article.title}"

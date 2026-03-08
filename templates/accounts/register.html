@@ -1,80 +1,486 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - InsightWrite{% endblock %}
+{% block title %}Register - NeuralWrite{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-user-plus"></i> Register</h3>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            {{ form.errors }}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                                {{ form.username }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                                {{ form.email }}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                                {{ form.password1 }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                                {{ form.password2 }}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        {{ form.role }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
-                        {{ form.bio }}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-user-plus"></i> Register
-                    </button>
-                </form>
-                
-                <hr>
-                <p class="text-center">
-                    Already have an account? <a href="{% url 'login' %}">Login here</a>
-                </p>
+<!-- Hero Section -->
+<section class="register-hero py-5" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="text-center text-white mb-4">
+                    <h1 class="fw-bold mb-3">Join NeuralWrite</h1>
+                    <p class="lead">Create your account and start sharing amazing content with our community</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Registration Form -->
+<section class="register-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card register-card border-0 shadow-lg">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="text-center mb-4">
+                            <div class="register-icon mb-3">
+                                <i class="fas fa-user-plus fa-3x text-primary"></i>
+                            </div>
+                            <h2 class="fw-bold">Create Account</h2>
+                            <p class="text-muted">Fill in the details to get started</p>
+                        </div>
+                        
+                        <form method="post" class="register-form">
+                            {% csrf_token %}
+                            
+                            {% if form.errors %}
+                                <div class="alert alert-danger border-0" role="alert">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <div>
+                                            <strong>Please fix the following errors:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                {% for field, errors in form.errors.items %}
+                                                    {% for error in errors %}
+                                                        <li>{{ error }}</li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Account Information -->
+                            <div class="form-section mb-4">
+                                <h5 class="section-title mb-3">
+                                    <i class="fas fa-user me-2"></i>Account Information
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-user me-1"></i>Username
+                                        </label>
+                                        {{ form.username }}
+                                        {% if form.username.errors %}
+                                            <div class="form-text text-danger">
+                                                {{ form.username.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-envelope me-1"></i>Email Address
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="form-text text-danger">
+                                                {{ form.email.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-lock me-1"></i>Password
+                                        </label>
+                                        {{ form.password1 }}
+                                        {% if form.password1.errors %}
+                                            <div class="form-text text-danger">
+                                                {{ form.password1.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-lock me-1"></i>Confirm Password
+                                        </label>
+                                        {{ form.password2 }}
+                                        {% if form.password2.errors %}
+                                            <div class="form-text text-danger">
+                                                {{ form.password2.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Profile Information -->
+                            <div class="form-section mb-5" style="padding: 2rem; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 1rem;">
+                                <h5 class="section-title mb-4">
+                                    <i class="fas fa-id-card me-2"></i>Profile Information
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-12 mb-4">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-user-tag me-1"></i>I want to join as
+                                        </label>
+                                        <div class="role-box" style="background: white; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid var(--border-light);">
+                                            <div class="role-options">
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="radio" name="role" id="role_reader" value="reader" checked>
+                                                    <label class="form-check-label" for="role_reader">
+                                                        <i class="fas fa-book-reader me-2"></i>Reader
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="radio" name="role" id="role_writer" value="writer">
+                                                    <label class="form-check-label" for="role_writer">
+                                                        <i class="fas fa-pen me-2"></i>Writer
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-0">
+                                                    <input class="form-check-input" type="radio" name="role" id="role_admin" value="admin">
+                                                    <label class="form-check-label" for="role_admin">
+                                                        <i class="fas fa-user-shield me-2"></i>Admin
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-text text-muted mt-2">
+                                            Choose your role to get personalized experience
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label for="{{ form.bio.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="fas fa-pen me-1"></i>Tell us about yourself
+                                        </label>
+                                        <div class="mb-2">
+                                            {{ form.bio }}
+                                        </div>
+                                        {% if form.bio.errors %}
+                                            <div class="form-text text-danger">
+                                                {{ form.bio.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text text-muted">
+                                            Share a bit about yourself and what you're interested in (optional)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                                
+                                <div class="text-center">
+                                    <p class="mb-0 text-muted">
+                                        Already have an account? 
+                                        <a href="{% url 'login' %}" class="text-primary text-decoration-none fw-semibold">
+                                            Sign In Here
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Benefits Section -->
+                <div class="benefits-section mt-5">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="benefit-card">
+                                <div class="benefit-icon mb-3">
+                                    <i class="fas fa-pen-fancy fa-2x text-primary"></i>
+                                </div>
+                                <h6 class="fw-bold">Write Articles</h6>
+                                <p class="text-muted small">Share your knowledge and stories with our community</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="benefit-card">
+                                <div class="benefit-icon mb-3">
+                                    <i class="fas fa-book-reader fa-2x text-success"></i>
+                                </div>
+                                <h6 class="fw-bold">Discover Content</h6>
+                                <p class="text-muted small">Find amazing articles from talented writers</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="benefit-card">
+                                <div class="benefit-icon mb-3">
+                                    <i class="fas fa-users fa-2x text-info"></i>
+                                </div>
+                                <h6 class="fw-bold">Join Community</h6>
+                                <p class="text-muted small">Connect with like-minded people</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <style>
-.form-control {
+/* Register Hero Section */
+.register-hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="50" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="30" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.register-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Register Card */
+.register-card {
+    border-radius: 1rem;
+    background: var(--card-light);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .register-card {
+    background: var(--card-dark);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.register-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .register-card:hover {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Form Sections */
+.form-section {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+[data-theme="dark"] .form-section {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
     margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+/* Role Selection */
+.role-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--border-light);
+}
+
+[data-theme="dark"] .role-box {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+
+.role-options .form-check {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.role-options .form-check:last-child {
+    margin-bottom: 0;
+}
+
+.role-options .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+.role-options .form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    padding: 0.25rem 0;
+}
+
+[data-theme="dark"] .role-options .form-check-label {
+    color: var(--text-dark);
+}
+
+.role-options .form-check-label:hover {
+    color: var(--primary-color);
+}
+
+/* Form Controls */
+.register-form .form-control {
+    border: 2px solid var(--border-light);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--card-light);
+    color: var(--text-light);
+    resize: vertical;
+}
+
+[data-theme="dark"] .register-form .form-control {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+    color: var(--text-dark);
+}
+
+.register-form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    outline: none;
+}
+
+.register-form .form-control::placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+[data-theme="dark"] .register-form .form-control::placeholder {
+    color: #adb5bd;
+}
+
+.register-form textarea.form-control {
+    min-height: 120px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.register-form .form-label {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .register-form .form-label {
+    color: var(--text-dark);
+}
+
+/* Benefits Section */
+.benefit-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    background: var(--card-light);
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+[data-theme="dark"] .benefit-card {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+
+.benefit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .benefit-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .register-hero {
+        padding: 3rem 0 !important;
+    }
+    
+    .register-hero h1 {
+        font-size: 2rem !important;
+    }
+    
+    .register-card {
+        margin: 0 1rem;
+    }
+    
+    .register-card .card-body {
+        padding: 2rem 1.5rem !important;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .role-selection {
+        flex-direction: column;
+    }
+    
+    .role-selection .form-check {
+        min-width: auto;
+    }
+    
+    .benefits-section .row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alert Styling */
+.alert-danger {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+[data-theme="dark"] .alert-danger {
+    background: linear-gradient(135deg, #4a1f1f, #6b2c2c);
+    border-color: #8b2c2c;
+    color: #ff6b6b;
+}
+
+/* Button Styling */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 </style>
 {% endblock %}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}NeuralWrite{% endblock %}</title>
+    <title>{% block title %}NeuralWrite - Modern Content Platform{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,16 +12,21 @@
     
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #ec4899;
+            --success-color: #10b981;
             --bg-light: #ffffff;
-            --text-light: #050505;
+            --text-light: #1f2937;
             --card-light: #ffffff;
-            --border-light: #e4e6eb;
-            --bg-dark: #18191a;
-            --text-dark: #e4e6eb;
-            --card-dark: #242526;
-            --border-dark: #3e4042;
-            --accent-dark: #3a3b3c;
+            --border-light: #e5e7eb;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --bg-dark: #0f172a;
+            --text-dark: #f1f5f9;
+            --card-dark: #1e293b;
+            --border-dark: #334155;
+            --accent-dark: #334155;
+            --shadow-dark: rgba(0, 0, 0, 0.3);
         }
         
         * {
@@ -35,13 +40,231 @@
             color: var(--text-light);
             transition: all 0.3s ease;
             min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            scroll-behavior: smooth;
         }
         
         [data-theme="dark"] html, 
         [data-theme="dark"] body {
             background-color: var(--bg-dark) !important;
             color: var(--text-dark) !important;
+        }
+        
+        /* Modern Responsive Typography */
+        h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; }
+        h2 { font-size: clamp(1.25rem, 3vw, 2rem); font-weight: 600; }
+        h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; }
+        h4 { font-size: clamp(1rem, 2vw, 1.25rem); font-weight: 600; }
+        p { font-size: clamp(0.9rem, 1.5vw, 1rem); }
+        
+        /* Modern Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px var(--shadow-light);
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+        }
+        
+        [data-theme="dark"] .navbar {
+            box-shadow: 0 4px 20px var(--shadow-dark);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-decoration: none;
+        }
+        
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Modern Cards */
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px var(--shadow-light);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background: var(--card-light);
+        }
+        
+        [data-theme="dark"] .card {
+            background: var(--card-dark);
+            box-shadow: 0 4px 20px var(--shadow-dark);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px var(--shadow-light);
+        }
+        
+        [data-theme="dark"] .card:hover {
+            box-shadow: 0 8px 30px var(--shadow-dark);
+        }
+        
+        /* Modern Buttons */
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            text-transform: none;
+            letter-spacing: 0.025em;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Modern Forms */
+        .form-control {
+            border: 2px solid var(--border-light);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--card-light);
+            color: var(--text-light);
+        }
+        
+        [data-theme="dark"] .form-control {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+            outline: none;
+        }
+        
+        /* Modern Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px var(--shadow-light);
+        }
+        
+        /* Responsive Grid */
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+        
+        /* Loading Animations */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 0;
+            }
+            
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+            
+            .article-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 1rem 0;
+            }
+            
+            .card {
+                border-radius: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.625rem 1.25rem;
+                font-size: 0.9rem;
+            }
+            
+            .theme-toggle {
+                width: 3rem;
+                height: 3rem;
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+        
+        /* Fast Transitions */
+        * {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        /* Performance Optimizations */
+        .card img {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        
+        /* Modern Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
         }
         
         main {
@@ -107,6 +330,9 @@
             align-items: center;
             justify-content: center;
             padding: 0;
+            z-index: 9999;
+            position: relative;
+            margin-left: 10px;
         }
         
         [data-theme="dark"] .theme-btn {

@@ -322,7 +322,7 @@
                 <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-user"></i> Edit Profile
                 </a>
-                {% if user.is_writer %}
+                {% if user.is_writer or user.is_admin_user %}
                 <a href="{% url 'article-create' %}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Create Article
                 </a>
@@ -332,7 +332,7 @@
     </div>
 </div>
 
-{% if user.is_writer %}
+{% if user.is_writer or user.is_admin_user %}
 <!-- DEBUG: total_published = {{ total_published }}, total_views = {{ total_views }}, total_likes = {{ total_likes }}, recent_articles.count = {{ recent_articles.count }} -->
 <div class="row">
     <div class="col-md-3">

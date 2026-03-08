@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
-from django.urls import reverse_lazy
 from django.contrib import messages
-from django.db.models import Q, F
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db import models
+from django.db.models import F
+from django.urls import reverse_lazy
 from .models import Article, Category, Tag, Like, Comment, ReadingSession, ArticleView
 from .forms import ArticleForm, CommentForm
 from analytics.models import UserBehavior
@@ -20,7 +22,11 @@ class HomeView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Article.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
+        queryset = Article.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
+        # Limit to 3 articles for non-authenticated users
+        if not self.request.user.is_authenticated:
+            queryset = queryset[:3]
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -43,6 +49,28 @@ class ArticleListView(ListView):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
         context['popular_tags'] = Tag.objects.all()[:10]
+        
+        # Add stats for homepage
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        context['total_articles'] = Article.objects.filter(status='published').count()
+        context['total_writers'] = User.objects.filter(role='writer').count()
+        context['total_readers'] = User.objects.filter(role='reader').count()
+        context['total_likes'] = Article.objects.aggregate(total=models.Sum('likes_count'))['total'] or 0
+        
+        # Add featured articles
+        context['featured_articles'] = Article.objects.filter(
+            status='published',
+            is_featured=True
+        ).select_related('author', 'category').order_by('-created_at')[:6]
+        
+        # If no featured articles, show recent popular articles
+        if not context['featured_articles']:
+            context['featured_articles'] = Article.objects.filter(
+                status='published'
+            ).select_related('author', 'category').order_by('-views_count', '-created_at')[:6]
+        
         return context
 
 
@@ -299,37 +327,45 @@ class LikeArticleView(LoginRequiredMixin, View):
     def post(self, request, slug):
         try:
             article = get_object_or_404(Article, slug=slug, status='published')
+            user = request.user
             
-            # Check if user already liked this article
-            existing_like = Like.objects.filter(user=request.user, article=article).first()
+            print(f"DEBUG: User {user.username} trying to like article {article.title}")
             
-            if existing_like:
-                # User already liked, so unlike
-                existing_like.delete()
-                liked = False
-                article.likes_count = max(0, article.likes_count - 1)
-            else:
-                # Create new like
-                Like.objects.create(user=request.user, article=article)
+            # Delete any existing likes from this user for this article
+            deleted_count, _ = Like.objects.filter(user=user, article=article).delete()
+            print(f"DEBUG: Deleted {deleted_count} existing likes")
+            
+            if deleted_count == 0:
+                # No existing like found, so create a new one
+                Like.objects.create(user=user, article=article)
                 liked = True
-                article.likes_count += 1
+                print("DEBUG: Created new like")
                 
-                # Track user behavior
+                # Track user behavior only for new likes
                 UserBehavior.objects.create(
-                    user=request.user,
+                    user=user,
                     article=article,
                     action_type='like',
                     ip_address=self.get_client_ip(request),
                     user_agent=request.META.get('HTTP_USER_AGENT', '')
                 )
+            else:
+                # User had already liked, so we just deleted it (unlike)
+                liked = False
+                print("DEBUG: Unliked (deleted existing like)")
             
-            # Save the article with updated count
+            # Get the actual count
+            actual_count = Like.objects.filter(article=article).count()
+            print(f"DEBUG: Actual like count: {actual_count}")
+            
+            # Update article
+            article.likes_count = actual_count
             article.save(update_fields=['likes_count'])
             
             return JsonResponse({
                 'success': True,
                 'liked': liked,
-                'likes_count': article.likes_count
+                'likes_count': actual_count
             })
             
         except Article.DoesNotExist:
@@ -344,8 +380,9 @@ class LikeArticleView(LoginRequiredMixin, View):
                 'success': False,
                 'error': str(e)
             }, status=500)
-    
+
     def get_client_ip(self, request):
+        """Get client IP address"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]

@@ -1,252 +1,306 @@
 {% extends 'base.html' %}
 {% load article_filters %}
 
-{% block title %}Home - InsightWrite{% endblock %}
-
-{% block extra_css %}
-<style>
-    .article-card {
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-    
-    .article-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    [data-theme="dark"] .article-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .article-title {
-        color: var(--text-light);
-        text-decoration: none;
-        font-weight: 600;
-    }
-    
-    [data-theme="dark"] .article-title {
-        color: var(--text-dark) !important;
-    }
-    
-    .article-title:hover {
-        color: var(--primary-color);
-    }
-    
-    .article-excerpt {
-        color: var(--text-light);
-        line-height: 1.6;
-    }
-    
-    [data-theme="dark"] .article-excerpt {
-        color: var(--text-dark) !important;
-    }
-    
-    .article-meta {
-        color: var(--text-light);
-        font-size: 0.9rem;
-    }
-    
-    [data-theme="dark"] .article-meta {
-        color: #b0b3b8 !important;
-    }
-    
-    .featured-section h3,
-    .latest-section h3 {
-        color: var(--text-light);
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-    }
-    
-    [data-theme="dark"] .featured-section h3,
-    [data-theme="dark"] .latest-section h3 {
-        color: var(--text-dark) !important;
-    }
-    
-    .trending-badge {
-        color: #ff6b35;
-        font-weight: 600;
-    }
-    
-    .sidebar-card {
-        transition: all 0.3s ease;
-    }
-    
-    .sidebar-card:hover {
-        transform: translateY(-1px);
-    }
-    
-    .category-link {
-        color: var(--text-light);
-        text-decoration: none;
-        display: flex;
-        justify-content: between;
-        align-items: center;
-        padding: 0.5rem 0;
-    }
-    
-    [data-theme="dark"] .category-link {
-        color: var(--text-dark) !important;
-    }
-    
-    .category-link:hover {
-        color: var(--primary-color);
-    }
-    
-    .tag-link {
-        color: var(--text-light);
-        text-decoration: none;
-        font-size: 0.8rem;
-    }
-    
-    [data-theme="dark"] .tag-link {
-        color: var(--text-dark) !important;
-    }
-    
-    .tag-link:hover {
-        color: var(--primary-color);
-    }
-</style>
-{% endblock %}
+{% block title %}Home - NeuralWrite{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <!-- Write Button for Writers -->
-        {% if user.is_authenticated and user.is_writer %}
-        <div class="mb-4">
-            <a href="{% url 'article-create' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-pen me-2"></i> Write New Article
-            </a>
+<!-- Hero Section -->
+<section class="hero-section text-white text-center py-5 mb-5" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Welcome to NeuralWrite</h1>
+                <p class="lead mb-4">Discover amazing content, share your knowledge, and connect with a community of passionate writers and readers.</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'article-list' %}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-book-open me-2"></i>Explore Articles
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'article-create' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-pen me-2"></i>Write Article
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        {% elif user.is_authenticated %}
-        <div class="mb-4">
-            <a href="{% url 'article-create' %}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-pen me-2"></i> Become a Writer
-            </a>
+    </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="stats-section py-4 mb-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <h3 class="fw-bold text-primary">{{ total_articles }}</h3>
+                    <p class="text-muted mb-0">Articles</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <h3 class="fw-bold text-success">{{ total_writers }}</h3>
+                    <p class="text-muted mb-0">Writers</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <h3 class="fw-bold text-info">{{ total_readers }}</h3>
+                    <p class="text-muted mb-0">Readers</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <h3 class="fw-bold text-warning">{{ total_likes }}</h3>
+                    <p class="text-muted mb-0">Total Likes</p>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <div class="mb-4 text-center">
-            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-pen me-2"></i> Start Writing
-            </a>
+    </div>
+</section>
+
+<!-- Featured Articles -->
+<section class="featured-section py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold mb-3">Featured Articles</h2>
+                <p class="text-muted">Discover the most popular and trending content from our community</p>
+            </div>
         </div>
-        {% endif %}
         
-        <!-- Featured Articles -->
-        {% if featured_articles %}
-        <div class="mb-4">
-            <h3><i class="fas fa-star"></i> Featured Articles</h3>
-            <div class="row">
-                {% for article in featured_articles %}
-                <div class="col-md-6 mb-3">
-                    <div class="card article-card">
-                        {% if article.featured_image %}
-                        <img src="{{ article.featured_image.url }}" class="card-img-top" alt="{{ article.title }}">
+        <div class="article-grid">
+            {% for article in featured_articles %}
+            <article class="card article-card h-100">
+                {% if article.featured_image %}
+                <div class="overflow-hidden" style="height: 200px;">
+                    <img src="{{ article.featured_image.url }}" class="card-img-top w-100 h-100 object-fit-cover" alt="{{ article.title }}">
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-2">
+                        <span class="badge bg-primary me-2">{{ article.category.name }}</span>
+                        {% if article.is_featured %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-star me-1"></i>Featured
+                        </span>
                         {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ article.title }}</h5>
-                            <p class="card-text">{{ article.excerpt|truncatewords:20 }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">{{ article.author.username }} • {{ article.created_at|date:"M d, Y" }}</small>
-                                <a href="{% url 'article-detail' article.slug %}" class="btn btn-primary btn-sm">Read More</a>
-                            </div>
+                    </div>
+                    <h3 class="card-title h5 mb-3">
+                        {% if user.is_authenticated %}
+                        <a href="{{ article.get_absolute_url }}" class="text-decoration-none article-link">
+                            {{ article.title|truncatechars:50 }}
+                        </a>
+                        {% else %}
+                        <a href="#" class="text-decoration-none article-link" onclick="event.preventDefault(); showLoginModal();">
+                            {{ article.title|truncatechars:50 }}
+                        </a>
+                        {% endif %}
+                    </h3>
+                    <p class="card-text text-muted flex-grow-1">
+                        {{ article.excerpt|truncatechars:120 }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ article.author.profile.picture.url|default:'/static/images/default-avatar.png' }}" 
+                                 class="rounded-circle me-2" width="24" height="24" alt="{{ article.author.username }}">
+                            <small class="text-muted">{{ article.author.username }}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <small class="text-muted">
+                                <i class="fas fa-eye me-1"></i>{{ article.views_count }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="fas fa-heart me-1"></i>{{ article.likes_count }}
+                            </small>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Latest Articles -->
-        <h3><i class="fas fa-newspaper"></i> Latest Articles</h3>
-        <div class="row">
-            {% for article in articles %}
-            <div class="col-md-6 mb-4">
-                <div class="card article-card">
-                    {% if article.featured_image %}
-                    <img src="{{ article.featured_image.url }}" class="card-img-top" alt="{{ article.title }}">
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>{{ article.created_at|date:"M d, Y" }}
+                        {% if article.reading_time %}
+                        <span class="ms-3"><i class="fas fa-clock me-1"></i>{{ article.reading_time }} min read</span>
+                        {% endif %}
+                    </small>
+                </div>
+            </article>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No featured articles yet</h4>
+                    <p class="text-muted">Be the first to share amazing content with our community!</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'article-create' %}" class="btn btn-primary">
+                            <i class="fas fa-pen me-2"></i>Write First Article
+                        </a>
                     {% endif %}
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <span class="badge bg-primary category-badge">{{ article.category.name }}</span>
-                            {% if article.is_trending %}
-                            <span class="trending-badge ms-1"><i class="fas fa-fire"></i> Trending</span>
-                            {% endif %}
-                        </div>
-                        <h5 class="card-title">{{ article.title }}</h5>
-                        <p class="card-text">{{ article.excerpt|truncatewords:15 }}</p>
-                        <div class="engagement-stats">
-                            <i class="fas fa-eye"></i> {{ article.views_count }} •
-                            <i class="fas fa-heart"></i> {{ article.likes_count }} •
-                            <i class="fas fa-comment"></i> {{ article.comments_count }} •
-                            <i class="fas fa-clock"></i> {{ article.reading_time }} min read
-                        </div>
-                        <div class="mt-2">
-                            <small class="text-muted">{{ article.author.username }} • {{ article.created_at|date:"M d, Y" }}</small>
-                        </div>
-                        <a href="{% url 'article-detail' article.slug %}" class="btn btn-outline-primary btn-sm mt-2">Read Article</a>
-                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-
-        <!-- Pagination -->
-        {% if is_paginated %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-                
-                {% for num in page_obj.paginator.page_range %}
-                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-                {% endfor %}
-                
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+        
+        {% if featured_articles %}
+        <div class="text-center mt-4">
+            <a href="{% url 'article-list' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-arrow-right me-2"></i>View All Articles
+            </a>
+        </div>
         {% endif %}
     </div>
+</section>
 
-    <div class="col-lg-4">
-        <!-- Sidebar -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="fas fa-fire"></i> Trending Now</h5>
-            </div>
-            <div class="card-body">
-                {% for article in trending_articles %}
-                <div class="mb-3">
-                    <h6><a href="{% url 'article-detail' article.slug %}">{{ article.title }}</a></h6>
-                    <small class="text-muted">{{ article.views_count }} views</small>
-                </div>
-                {% endfor %}
+<!-- Categories Section -->
+<section class="categories-section py-5 bg-light">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold mb-3">Explore Categories</h2>
+                <p class="text-muted">Find content that matches your interests</p>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-tags"></i> Categories</h5>
-            </div>
-            <div class="card-body">
-                {% for category in categories %}
-                <a href="{% url 'category-detail' category.slug %}" class="btn btn-outline-secondary btn-sm me-2 mb-2">
-                    {{ category.name }}
+        
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-md-3 col-sm-6">
+                <a href="{% url 'category-detail' category.slug %}" class="text-decoration-none">
+                    <div class="card category-card h-100 text-center p-3">
+                        <div class="category-icon mb-3">
+                            <i class="fas fa-folder fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-2">{{ category.name }}</h5>
+                        <p class="card-text text-muted small">
+                            {{ category.article_set.count }} articles
+                        </p>
+                    </div>
                 </a>
-                {% endfor %}
             </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-muted text-center">No categories available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+.article-link {
+    color: var(--text-light) !important;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .article-link {
+    color: var(--text-dark) !important;
+}
+
+.article-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.category-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: var(--card-light);
+}
+
+[data-theme="dark"] .category-card {
+    background: var(--card-dark);
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px var(--shadow-light);
+}
+
+[data-theme="dark"] .category-card:hover {
+    box-shadow: 0 8px 25px var(--shadow-dark);
+}
+
+.stat-card {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: var(--card-light);
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--shadow-light);
+}
+
+[data-theme="dark"] .stat-card:hover {
+    box-shadow: 0 4px 15px var(--shadow-dark);
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0 !important;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem !important;
+    }
+    
+    .article-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .categories-section .row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+<!-- Login Modal -->
+{% if not user.is_authenticated %}
+<div id="loginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 20px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="margin: 0; font-size: 18px;"><i class="fas fa-lock" style="margin-right: 10px;"></i>Login Required</h5>
+            <button onclick="closeLoginModal()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 30px; text-align: center;">
+            <i class="fas fa-book-reader" style="font-size: 50px; color: #4f46e5; margin-bottom: 20px;"></i>
+            <h4 style="margin-bottom: 15px;">Want to read this article?</h4>
+            <p style="color: #666; margin-bottom: 25px;">Please login or create an account to access the full content and enjoy all features.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="{% url 'login' %}" style="background: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: block;">
+                    <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>Login
+                </a>
+                <a href="{% url 'register' %}" style="background: white; color: #4f46e5; border: 2px solid #4f46e5; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: block;">
+                    <i class="fas fa-user-plus" style="margin-right: 8px;"></i>Create Account
+                </a>
+            </div>
+        </div>
+        <div style="padding: 15px; text-align: center; background: #f3f4f6; border-radius: 0 0 10px 10px;">
+            <button onclick="closeLoginModal()" style="background: #6b7280; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;">Continue Browsing</button>
         </div>
     </div>
 </div>
+
+<script>
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'block';
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').style.display = 'none';
+}
+</script>
+{% endif %}
+
 {% endblock %}
