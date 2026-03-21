@@ -23,4 +23,4 @@ RUN mkdir -p media staticfiles
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "insightwrite.wsgi:application"]
+CMD gunicorn insightwrite.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 4 --threads 2 --timeout 120
