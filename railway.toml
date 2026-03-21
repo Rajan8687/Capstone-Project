@@ -1,0 +1,22 @@
+# Railway Deployment Configuration
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+healthcheckPath = "/"
+healthcheckTimeout = 100
+
+# Set environment variables
+[deploy.env]
+PYTHON_VERSION = "3.11"
+NIXPACKS_PYTHON_VERSION = "3.11"
+
+# Variables that Railway will auto-provide:
+# - DATABASE_URL (PostgreSQL)
+# - SECRET_KEY
+# - PORT
+# - RAILWAY_STATIC_URL

@@ -195,6 +195,21 @@ class ArticleDetailView(DetailView):
                 user=self.request.user,
                 article=article
             ).exists()
+            
+            # Get or create reading session for today
+            today = timezone.now().date()
+            reading_session, created = ReadingSession.objects.get_or_create(
+                user=self.request.user,
+                article=article,
+                start_time__date=today,
+                defaults={
+                    'start_time': timezone.now(),
+                    'time_spent': 0,
+                    'scroll_percentage': 0.0,
+                    'completed': False
+                }
+            )
+            context['reading_session'] = reading_session
         
         return context
 
@@ -329,34 +344,32 @@ class LikeArticleView(LoginRequiredMixin, View):
             article = get_object_or_404(Article, slug=slug, status='published')
             user = request.user
             
-            print(f"DEBUG: User {user.username} trying to like article {article.title}")
+            # Use atomic transaction to prevent race conditions
+            from django.db import transaction
             
-            # Delete any existing likes from this user for this article
-            deleted_count, _ = Like.objects.filter(user=user, article=article).delete()
-            print(f"DEBUG: Deleted {deleted_count} existing likes")
+            with transaction.atomic():
+                # Try to get existing like
+                try:
+                    existing_like = Like.objects.select_for_update().get(user=user, article=article)
+                    # Like exists, so delete it (unlike)
+                    existing_like.delete()
+                    liked = False
+                except Like.DoesNotExist:
+                    # No existing like, create new one
+                    Like.objects.create(user=user, article=article)
+                    liked = True
+                    
+                    # Track user behavior only for new likes
+                    UserBehavior.objects.create(
+                        user=user,
+                        article=article,
+                        action_type='like',
+                        ip_address=self.get_client_ip(request),
+                        user_agent=request.META.get('HTTP_USER_AGENT', '')
+                    )
             
-            if deleted_count == 0:
-                # No existing like found, so create a new one
-                Like.objects.create(user=user, article=article)
-                liked = True
-                print("DEBUG: Created new like")
-                
-                # Track user behavior only for new likes
-                UserBehavior.objects.create(
-                    user=user,
-                    article=article,
-                    action_type='like',
-                    ip_address=self.get_client_ip(request),
-                    user_agent=request.META.get('HTTP_USER_AGENT', '')
-                )
-            else:
-                # User had already liked, so we just deleted it (unlike)
-                liked = False
-                print("DEBUG: Unliked (deleted existing like)")
-            
-            # Get the actual count
+            # Get the actual count after transaction
             actual_count = Like.objects.filter(article=article).count()
-            print(f"DEBUG: Actual like count: {actual_count}")
             
             # Update article
             article.likes_count = actual_count
@@ -375,7 +388,6 @@ class LikeArticleView(LoginRequiredMixin, View):
             }, status=404)
             
         except Exception as e:
-            print(f"Like error: {e}")
             return JsonResponse({
                 'success': False,
                 'error': str(e)
@@ -510,3 +522,46 @@ class DeleteCommentView(LoginRequiredMixin, View):
         
         except Comment.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Comment not found'})
+
+
+class TrackReadingTimeView(LoginRequiredMixin, View):
+    """Track user reading time and scroll percentage"""
+    def post(self, request, slug):
+        try:
+            article = get_object_or_404(Article, slug=slug)
+            data = json.loads(request.body)
+            
+            time_spent = data.get('time_spent', 0)  # in seconds
+            scroll_percentage = data.get('scroll_percentage', 0.0)
+            completed = data.get('completed', False)
+            
+            # Get or create reading session for today
+            today = timezone.now().date()
+            session, created = ReadingSession.objects.get_or_create(
+                user=request.user,
+                article=article,
+                start_time__date=today,
+                defaults={
+                    'start_time': timezone.now(),
+                    'time_spent': 0,
+                    'scroll_percentage': 0.0,
+                    'completed': False
+                }
+            )
+            
+            # Update session data
+            session.time_spent = time_spent
+            session.scroll_percentage = scroll_percentage
+            session.completed = completed
+            session.end_time = timezone.now()
+            session.save()
+            
+            return JsonResponse({
+                'success': True,
+                'time_spent': session.time_spent,
+                'scroll_percentage': session.scroll_percentage,
+                'completed': session.completed
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})

@@ -333,7 +333,7 @@
 </div>
 
 {% if user.is_writer or user.is_admin_user %}
-<!-- DEBUG: total_published = {{ total_published }}, total_views = {{ total_views }}, total_likes = {{ total_likes }}, recent_articles.count = {{ recent_articles.count }} -->
+<!-- DEBUG: total_published = {{ total_published }}, total_views = {{ total_views }}, total_likes = {{ total_likes }}, all_articles.count = {{ all_articles.count }} -->
 <div class="row">
     <div class="col-md-3">
         <div class="card dashboard-stats">
@@ -374,10 +374,10 @@
     <div class="col-md-12">
         <div class="card recent-articles">
             <div class="card-header">
-                <h5><i class="fas fa-pen"></i> Your Recent Articles</h5>
+                <h5><i class="fas fa-pen"></i> Your Articles ({{ total_published|default:0 }} total)</h5>
             </div>
             <div class="card-body">
-                {% for article in recent_articles %}
+                {% for article in all_articles %}
                     <div class="article-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -406,16 +406,8 @@
                         </div>
                     </div>
                 {% empty %}
-                    <p class="empty-state">You haven't published any articles yet.</p>
+                    <p class="empty-state">You haven't written any articles yet. <a href="{% url 'article-create' %}">Create your first article!</a></p>
                 {% endfor %}
-                
-                {% if total_published > 5 %}
-                <div class="text-center mt-3">
-                    <a href="{% url 'article-list' %}" class="see-more-btn">
-                        <i class="fas fa-arrow-right"></i> See All Articles ({{ total_published }} total)
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -427,55 +419,27 @@
     <div class="col-md-4">
         <div class="card dashboard-stats">
             <div class="card-body">
-                <h5 class="stats-label">Articles Read</h5>
-                <h2 class="stats-number text-primary">{{ user.readerprofile.total_articles_read }}</h2>
+                <h5 class="stats-label">Writer Score</h5>
+                <h2 class="stats-number text-warning">{{ writer_score|floatformat:1|default:0 }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card dashboard-stats">
             <div class="card-body">
-                <h5 class="stats-label">Reading Time</h5>
-                <h2 class="stats-number text-success">{{ user.readerprofile.total_reading_time }} min</h2>
+                <h5 class="stats-label">Total Likes</h5>
+                <h2 class="stats-number text-danger">{{ total_likes|default:0 }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card dashboard-stats">
             <div class="card-body">
-                <h5 class="stats-label">Last Active</h5>
-                <h6 class="stats-number text-info">{{ user.readerprofile.last_active|date:"M d, Y" }}</h6>
+                <h5 class="stats-label">Articles Written</h5>
+                <h2 class="stats-number text-success">{{ total_published|default:0 }}</h2>
             </div>
         </div>
     </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card recommended-articles">
-            <div class="card-header">
-                <h5><i class="fas fa-book"></i> Recommended for You</h5>
-            </div>
-            <div class="card-body">
-                {% for article in recommended_articles %}
-                    <div class="article-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6><a href="{% url 'article-detail' article.slug %}" class="article-title-link">{{ article.title }}</a></h6>
-                                <small class="article-meta">
-                                    {{ article.category.name }} • {{ article.views_count }} views • 
-                                    {{ article.reading_time }} min read
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p class="empty-state">No recommendations available yet. Start reading articles to get personalized recommendations!</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
 {% endif %}
 
 <div class="row mt-4">

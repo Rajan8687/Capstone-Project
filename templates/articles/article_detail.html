@@ -313,22 +313,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         likeBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Like button clicked!');
             
-            // Prevent multiple rapid clicks
-            if (this.disabled) {
-                console.log('Button already disabled, ignoring click');
+            // Prevent multiple rapid clicks - check if already processing
+            if (this.dataset.processing === 'true') {
+                console.log('Already processing like request, ignoring click');
                 return;
             }
             
+            // Set processing flag
+            this.dataset.processing = 'true';
+            this.disabled = true;
+            
             const articleSlug = this.dataset.articleSlug;
             const likeCount = this.querySelector('.like-count');
+            const currentCount = likeCount.textContent;
             
-            console.log('Sending request to:', `/like/${articleSlug}/`);
-            
-            // Disable button during request
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="like-count">' + likeCount.textContent + '</span>';
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="like-count">' + currentCount + '</span>';
             
             fetch(`/like/${articleSlug}/`, {
                 method: 'POST',
@@ -339,20 +340,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => {
-                console.log('Response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Response data:', data);
-                
-                // Re-enable button
-                this.disabled = false;
-                
                 if (data.success) {
-                    likeCount.textContent = data.likes_count;
+                    // Update button appearance based on liked status
                     if (data.liked) {
                         this.classList.remove('btn-outline-danger');
                         this.classList.add('btn-danger');
@@ -360,19 +355,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.remove('btn-danger');
                         this.classList.add('btn-outline-danger');
                     }
-                    // Restore button content
+                    // Update count and restore button
                     this.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + data.likes_count + '</span>';
                 } else {
                     console.error('Like failed:', data);
-                    // Restore original button content
-                    this.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + likeCount.textContent + '</span>';
+                    // Restore original state
+                    this.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + currentCount + '</span>';
                 }
             })
             .catch(error => {
                 console.error('Fetch error:', error);
-                this.disabled = false;
-                // Restore original button content
-                this.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + likeCount.textContent + '</span>';
+                // Restore original state
+                this.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + currentCount + '</span>';
+            })
+            .finally(() => {
+                // Re-enable button after a short delay to prevent rapid clicking
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.dataset.processing = 'false';
+                }, 500); // 500ms delay before allowing next click
             });
         });
     } else {
@@ -500,6 +501,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             {% endif %}
                             <div class="text-muted">
                                 <i class="fas fa-clock"></i> {{ article.reading_time }} min read
+                                {% if user.is_authenticated %}
+                                <span class="ms-3 text-success">
+                                    <i class="fas fa-stopwatch"></i> 
+                                    <span id="reading-time-display">0:00</span> reading
+                                </span>
+                                <span class="ms-2 text-info">
+                                    <i class="fas fa-scroll"></i> 
+                                    <span id="scroll-percentage-display">0%</span>
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="mt-3">
@@ -675,6 +686,110 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Reading Time Tracking
+(function() {
+    let startTime = Date.now();
+    let totalTimeSpent = {% if reading_session %}{{ reading_session.time_spent }}{% else %}0{% endif %};
+    let maxScrollPercentage = {% if reading_session %}{{ reading_session.scroll_percentage }}{% else %}0{% endif %};
+    let isActive = true;
+    let lastUpdateTime = Date.now();
+    const articleSlug = '{{ article.slug }}';
+    
+    // Update display with previous values
+    updateReadingDisplay();
+    
+    // Calculate scroll percentage
+    function getScrollPercentage() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if (docHeight === 0) return 0;
+        return Math.round((scrollTop / docHeight) * 100);
+    }
+    
+    // Track scroll
+    window.addEventListener('scroll', function() {
+        const currentScroll = getScrollPercentage();
+        if (currentScroll > maxScrollPercentage) {
+            maxScrollPercentage = currentScroll;
+        }
+    });
+    
+    // Track visibility/active time
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            isActive = false;
+            // Update total time when becoming inactive
+            totalTimeSpent += Math.floor((Date.now() - lastUpdateTime) / 1000);
+        } else {
+            isActive = true;
+            lastUpdateTime = Date.now();
+        }
+    });
+    
+    // Send reading data to server
+    function sendReadingData() {
+        if (isActive) {
+            totalTimeSpent += Math.floor((Date.now() - lastUpdateTime) / 1000);
+            lastUpdateTime = Date.now();
+        }
+        
+        const completed = maxScrollPercentage >= 90; // Mark as completed if scrolled 90%
+        
+        fetch(`/track-reading/${articleSlug}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                time_spent: totalTimeSpent,
+                scroll_percentage: maxScrollPercentage,
+                completed: completed
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Reading time tracked:', Math.floor(data.time_spent / 60) + ' min ' + (data.time_spent % 60) + ' sec');
+            }
+        })
+        .catch(error => console.error('Error tracking reading time:', error));
+    }
+    
+    // Send data every 30 seconds
+    setInterval(sendReadingData, 30000);
+    
+    // Send data when user leaves the page
+    window.addEventListener('beforeunload', function() {
+        sendReadingData();
+    });
+    
+    // Update display
+    function updateReadingDisplay() {
+        if (isActive) {
+            const currentTime = totalTimeSpent + Math.floor((Date.now() - lastUpdateTime) / 1000);
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            
+            // Update reading time display if element exists
+            const timeDisplay = document.getElementById('reading-time-display');
+            if (timeDisplay) {
+                timeDisplay.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            }
+            
+            // Update scroll percentage display
+            const scrollDisplay = document.getElementById('scroll-percentage-display');
+            if (scrollDisplay) {
+                scrollDisplay.textContent = maxScrollPercentage + '%';
+            }
+        }
+    }
+    
+    // Update display every second
+    setInterval(updateReadingDisplay, 1000);
+})();
 </script>
 {% endif %}
 {% endblock %}

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.http import JsonResponse
-from django.db.models import Count, Avg, Q, F
+from django.db.models import Count, Avg, Q, F, Sum
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import get_user_model
@@ -37,17 +37,54 @@ class AnalyticsDashboardView(LoginRequiredMixin, TemplateView):
         context['recent_activity'] = UserBehavior.objects.select_related('user', 'article').order_by('-timestamp')[:10]
         context['recent_behaviors'] = context['recent_activity']  # Alias for template compatibility
         
-        # Trending articles - get from TrendingScore model
+        # Trending articles - calculate dynamically if TrendingScore doesn't exist
         trending_scores = TrendingScore.objects.select_related('article').filter(
             article__status='published'
         ).order_by('-score')[:10]
-        context['trending_articles'] = [ts.article for ts in trending_scores]
-        context['trending_scores'] = {ts.article.id: ts.score for ts in trending_scores}
         
-        # Top writers - add missing context
-        context['top_writers'] = User.objects.filter(
+        if trending_scores.exists():
+            context['trending_articles'] = [ts.article for ts in trending_scores]
+            context['trending_scores'] = {ts.article.id: ts.score for ts in trending_scores}
+        else:
+            # Fallback: calculate trending based on views and engagement
+            from django.db.models import F, ExpressionWrapper, FloatField
+            trending_articles = Article.objects.filter(
+                status='published',
+                views_count__gt=0
+            ).annotate(
+                engagement_score=ExpressionWrapper(
+                    (F('likes_count') + F('comments_count')) * 1.0 / F('views_count'),
+                    output_field=FloatField()
+                )
+            ).order_by('-views_count', '-engagement_score')[:10]
+            
+            context['trending_articles'] = trending_articles
+            # Create mock scores based on views
+            context['trending_scores'] = {a.id: a.views_count * 0.1 + a.likes_count for a in trending_articles}
+        
+        # Top writers - calculate dynamically
+        top_writers = User.objects.filter(
             role='writer'
         ).select_related('writerprofile').order_by('-writerprofile__writer_score')[:10]
+        
+        if not top_writers.exists():
+            # Fallback: get all users who have published articles
+            top_writers = User.objects.filter(
+                articles__status='published'
+            ).annotate(
+                total_articles=Count('articles', filter=Q(articles__status='published')),
+                total_views=Sum('articles__views_count'),
+                total_likes=Sum('articles__likes_count')
+            ).filter(total_articles__gt=0).order_by('-total_views')[:10]
+            
+            # Create mock writer profiles for display
+            for writer in top_writers:
+                if not hasattr(writer, 'writerprofile'):
+                    writer.writerprofile = None
+                    writer.mock_score = (writer.total_views or 0) * 0.01 + (writer.total_likes or 0) * 0.1
+                    writer.total_articles_published = writer.total_articles
+        
+        context['top_writers'] = top_writers
         
         # Top performing articles - add missing context
         context['top_performing'] = Article.objects.filter(

@@ -6,6 +6,7 @@ from django.views.generic import CreateView, UpdateView, DetailView, TemplateVie
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import models
+from django.utils import timezone
 from .forms import CustomUserCreationForm, UserUpdateForm, ReaderProfileForm, WriterProfileForm
 from .models import User, ReaderProfile, WriterProfile
 from articles.models import Article
@@ -40,11 +41,15 @@ class ProfileView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         user = self.get_object()
         
+        # Always provide both profiles (one will be None)
+        context['writer_profile'] = getattr(user, 'writerprofile', None)
+        context['reader_profile'] = getattr(user, 'readerprofile', None)
+        
+        # Add user form for profile editing
+        context['user_form'] = UserUpdateForm(instance=user)
+        
         if user.is_writer:
-            context['writer_profile'] = getattr(user, 'writerprofile', None)
             context['user_articles'] = Article.objects.filter(author=user, status='published')[:5]
-        else:
-            context['reader_profile'] = getattr(user, 'readerprofile', None)
         
         return context
 
@@ -56,80 +61,59 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        # Show writer dashboard for both writers and admins
-        if user.is_writer or user.is_admin_user:
-            writer_profile = getattr(user, 'writerprofile', None)
-            
-            # Get ALL YOUR articles (regardless of status)
-            your_articles = Article.objects.filter(author=user)
-            
-            # Calculate stats for ALL articles
-            total_articles = your_articles.count()
-            
-            # Manual calculation for ALL articles
-            total_views = 0
-            total_likes = 0
-            for article in your_articles:
-                total_views += article.views_count or 0
-                total_likes += article.likes_count or 0
-            
-            # Also get published count for reference
-            published_count = your_articles.filter(status='published').count()
-            
-            # Update writer profile
-            if writer_profile:
-                writer_profile.total_articles_published = published_count
-                writer_profile.total_views = total_views
-                writer_profile.total_likes = total_likes
-                writer_profile.calculate_writer_score()
-            
-            context['writer_profile'] = writer_profile
-            context['recent_articles'] = your_articles.order_by('-created_at')[:5]
-            context['total_published'] = total_articles  # Show ALL articles count
-            context['total_views'] = total_views
-            context['total_likes'] = total_likes
-            context['published_count'] = published_count  # For reference
-        else:
-            reader_profile = getattr(user, 'readerprofile', None)
-            context['reader_profile'] = reader_profile
-            
-        return context
-
-
-class ProfileView(LoginRequiredMixin, TemplateView):
-    template_name = 'accounts/profile.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
+        # Always provide both profiles (one will be None)
+        writer_profile = getattr(user, 'writerprofile', None)
+        reader_profile = getattr(user, 'readerprofile', None)
+        context['writer_profile'] = writer_profile
+        context['reader_profile'] = reader_profile
         
-        # User form for profile editing
-        user_form = UserUpdateForm(instance=user)
-        context['user_form'] = user_form
+        # Calculate writer stats for ALL users (including readers who write articles)
+        your_articles = Article.objects.filter(author=user)
+        published_count = your_articles.filter(status='published').count()
         
-        # User statistics
-        from articles.models import Article
-        from analytics.models import UserBehavior
+        # Calculate stats from articles
+        total_views = 0
+        total_likes = 0
+        for article in your_articles:
+            total_views += article.views_count or 0
+            total_likes += article.likes_count or 0
         
-        # Get user's articles
-        user_articles = Article.objects.filter(author=user)
-        context['total_articles'] = user_articles.count()
-        context['published_articles'] = user_articles.filter(status='published').count()
-        context['draft_articles'] = user_articles.filter(status='draft').count()
-        context['archived_articles'] = user_articles.filter(status='archived').count()
+        # Calculate writer score
+        writer_score = 0.0
+        if published_count > 0:
+            avg_views = total_views / published_count
+            avg_likes = total_likes / published_count
+            writer_score = (avg_views * 0.6) + (avg_likes * 10 * 0.3) + (published_count * 0.1)
+            writer_score = round(writer_score, 2)
         
-        # Get reading statistics
-        user_behavior = UserBehavior.objects.filter(user=user)
-        context['total_views'] = sum(behavior.article.views_count for behavior in user_behavior if behavior.article)
-        context['articles_read'] = user_behavior.filter(action_type='view').count()
+        # Add stats to context for ALL users
+        context['total_published'] = published_count
+        context['total_views'] = total_views
+        context['total_likes'] = total_likes
+        context['writer_score'] = writer_score
+        context['all_articles'] = your_articles.order_by('-created_at')  # All articles, not just recent
         
-        # User profile information
-        if hasattr(user, 'writerprofile'):
-            writer_profile = user.writerprofile
-            context['writer_profile'] = writer_profile
-        else:
-            reader_profile = getattr(user, 'readerprofile', None)
-            context['reader_profile'] = reader_profile
+        # Update writer profile if exists
+        if writer_profile:
+            writer_profile.total_articles_published = published_count
+            writer_profile.total_views = total_views
+            writer_profile.total_likes = total_likes
+            writer_profile.writer_score = writer_score
+            writer_profile.save()
+        
+        # Add recommended articles for all users
+        try:
+            from recommendations.models import UserRecommendation
+            recommended_articles = UserRecommendation.objects.filter(
+                user=user,
+                expires_at__gt=timezone.now()
+            ).select_related('article')[:5]
+            context['recommended_articles'] = [rec.article for rec in recommended_articles]
+        except Exception:
+            # Fallback to popular articles
+            context['recommended_articles'] = Article.objects.filter(
+                status='published'
+            ).order_by('-views_count')[:5]
         
         return context
 
@@ -152,7 +136,14 @@ def update_profile(request):
     else:
         user_form = UserUpdateForm(instance=request.user)
     
+    # Always provide profile context
+    user = request.user
+    writer_profile = getattr(user, 'writerprofile', None)
+    reader_profile = getattr(user, 'readerprofile', None)
+    
     return render(request, 'accounts/profile.html', {
         'user_form': user_form,
-        'user': request.user,  # Ensure user context is passed
+        'user': user,
+        'writer_profile': writer_profile,
+        'reader_profile': reader_profile,
     })

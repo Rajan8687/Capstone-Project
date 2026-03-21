@@ -373,37 +373,17 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-cog"></i> Recommendation Preferences</h5>
+                <h5><i class="fas fa-cog"></i> Recommendation Settings</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'recommendation-preferences' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="content_types" class="form-label">Preferred Content Types</label>
-                        <select class="form-select" id="content_types" name="content_types" multiple>
-                            <option value="tutorial" {% if 'tutorial' in user_preferences.content_types %}selected{% endif %}>Tutorials</option>
-                            <option value="news" {% if 'news' in user_preferences.content_types %}selected{% endif %}>News</option>
-                            <option value="opinion" {% if 'opinion' in user_preferences.content_types %}selected{% endif %}>Opinion</option>
-                            <option value="research" {% if 'research' in user_preferences.content_types %}selected{% endif %}>Research</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="reading_level" class="form-label">Reading Level</label>
-                        <select class="form-select" id="reading_level" name="reading_level">
-                            <option value="beginner" {% if user_preferences.reading_level == 'beginner' %}selected{% endif %}>Beginner</option>
-                            <option value="intermediate" {% if user_preferences.reading_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
-                            <option value="advanced" {% if user_preferences.reading_level == 'advanced' %}selected{% endif %}>Advanced</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="max_recommendations" class="form-label">Max Recommendations per Day</label>
-                        <input type="number" class="form-control" id="max_recommendations" name="max_recommendations" 
-                               value="{{ user_preferences.max_recommendations|default:10 }}" min="1" max="50">
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Preferences
-                    </button>
-                </form>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Feature Update:</strong> Personalized preferences are currently being improved. 
+                    Recommendations are now automatically generated based on your reading history.
+                </div>
+                <p class="text-muted">
+                    Our system automatically learns from your reading patterns to provide better recommendations.
+                </p>
             </div>
         </div>
     </div>

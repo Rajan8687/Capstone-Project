@@ -163,36 +163,17 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-cog"></i> Recommendation Preferences</h5>
+                <h5><i class="fas fa-cog"></i> Recommendation Settings</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="{% url 'recommendation-preferences' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="content_types" class="form-label">Preferred Content Types</label>
-                        <select class="form-select" id="content_types" name="content_types" multiple>
-                            <option value="tutorial">Tutorials</option>
-                            <option value="news">News</option>
-                            <option value="opinion">Opinion</option>
-                            <option value="research">Research</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="reading_level" class="form-label">Reading Level</label>
-                        <select class="form-select" id="reading_level" name="reading_level">
-                            <option value="beginner">Beginner</option>
-                            <option value="intermediate">Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="max_recommendations" class="form-label">Max Recommendations per Day</label>
-                        <input type="number" class="form-control" id="max_recommendations" name="max_recommendations" value="10" min="1" max="50">
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Preferences
-                    </button>
-                </form>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Feature Update:</strong> Personalized preferences are currently being improved. 
+                    Recommendations are now automatically generated based on your reading history.
+                </div>
+                <p class="text-muted">
+                    Our system automatically learns from your reading patterns to provide better recommendations.
+                </p>
             </div>
         </div>
     </div>

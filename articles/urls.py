@@ -17,4 +17,5 @@ urlpatterns = [
     path('delete-comment/<int:comment_id>/', views.DeleteCommentView.as_view(), name='delete-comment'),
     path('my-articles/', views.UserArticlesView.as_view(), name='user-articles'),
     path('author-article/<slug:slug>/', views.AuthorArticleDetailView.as_view(), name='author-article-detail'),
+    path('track-reading/<slug:slug>/', views.TrackReadingTimeView.as_view(), name='track-reading'),
 ]

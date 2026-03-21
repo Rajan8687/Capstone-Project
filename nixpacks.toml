@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["python311", "postgresql", "redis"]
+
+[phases.build]
+cmds = [
+    "python -m pip install --upgrade pip",
+    "pip install -r requirements.txt",
+    "python manage.py collectstatic --noinput"
+]
+
+[phases.setup.env]
+PYTHON_VERSION = "3.11"
+NIXPACKS_PYTHON_VERSION = "3.11"
+PIP_DISABLE_PIP_VERSION_CHECK = "1"
+PIP_NO_CACHE_DIR = "1"
