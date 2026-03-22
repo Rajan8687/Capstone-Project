@@ -4,7 +4,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"
+startCommand = "export LD_LIBRARY_PATH=/nix/store/ybjcla5bhj8g1y84998pn4a2drfxybkv-gcc-13.3.0-lib/lib startCommand = "export LD_LIBRARY_PATH=/nix/store/ybjcla5bhj8g1y84998pn4a2drfxybkv-gcc-13.3.0-lib/lib startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120" gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120" gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120" gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 healthcheckPath = "/";
