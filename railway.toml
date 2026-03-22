@@ -7,8 +7,8 @@ builder = "nixpacks"
 startCommand = "gunicorn insightwrite.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-# healthcheckPath = "/"
-# healthcheckTimeout = 300
+healthcheckPath = "/";
+healthcheckTimeout = 300
 
 # Set environment variables
 [deploy.env]
