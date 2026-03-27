@@ -125,8 +125,23 @@ class ArticleDetailView(DetailView):
     context_object_name = 'article'
     slug_url_kwarg = 'slug'
 
-    def get_queryset(self):
-        return Article.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags', 'comments__user')
+    def get_object(self, queryset=None):
+        """Get article - published for public, any status for author"""
+        slug = self.kwargs.get(self.slug_url_kwarg)
+        from django.http import Http404
+        
+        # Try to get published article first (for everyone)
+        try:
+            return Article.objects.get(slug=slug, status='published')
+        except Article.DoesNotExist:
+            # If user is authenticated, check if they own the article
+            if self.request.user.is_authenticated:
+                try:
+                    return Article.objects.get(slug=slug, author=self.request.user)
+                except Article.DoesNotExist:
+                    pass
+            # Article not found or not authorized
+            raise Http404(f"No article found with slug '{slug}'")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Page Not Found - InsightWrite{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-1 text-muted mb-4">404</h1>
+            <h2 class="mb-3">Article Not Found</h2>
+            <p class="lead mb-4">The article you're looking for doesn't exist or has been removed.</p>
+            
+            <div class="mb-4">
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-home me-2"></i>Go Home
+                </a>
+                <a href="{% url 'article-list' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-newspaper me-2"></i>Browse Articles
+                </a>
+            </div>
+            
+            <p class="text-muted small">
+                <i class="fas fa-info-circle me-1"></i>
+                Looking for something else? Try searching or check your URL.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
