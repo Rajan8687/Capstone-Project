@@ -85,13 +85,13 @@
                                 </div>
                                 
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-12 mb-3">
                                         <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
                                             <i class="fas fa-lock me-1"></i>Password
                                         </label>
-                                        <div class="password-wrapper">
+                                        <div class="position-relative">
                                             {{ form.password1 }}
-                                            <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password1.id_for_label }}', this)">
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('{{ form.password1.id_for_label }}', this)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
@@ -101,13 +101,15 @@
                                             </div>
                                         {% endif %}
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
                                         <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
                                             <i class="fas fa-lock me-1"></i>Confirm Password
                                         </label>
-                                        <div class="password-wrapper">
+                                        <div class="position-relative">
                                             {{ form.password2 }}
-                                            <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password2.id_for_label }}', this)">
+                                            <button type="button" class="password-toggle-btn" onclick="togglePassword('{{ form.password2.id_for_label }}', this)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
@@ -131,7 +133,7 @@
                                         <label class="form-label fw-semibold">
                                             <i class="fas fa-user-tag me-1"></i>I want to join as
                                         </label>
-                                        <div class="role-box" style="background: white; padding: 1.5rem; border-radius: 0.5rem; border: 2px solid var(--border-light);">
+                                        <div class="role-box">
                                             <div class="role-options">
                                                 <div class="form-check mb-3">
                                                     <input class="form-check-input" type="radio" name="role" id="role_reader" value="reader" checked>
@@ -357,20 +359,13 @@
 /* Form Controls */
 .register-form .form-control {
     border: 2px solid var(--border-light);
-    border-radius: 0.75rem;
-    padding: 0.875rem 1rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
     font-size: 1rem;
     transition: all 0.3s ease;
     background: var(--card-light);
     color: var(--text-light);
     resize: vertical;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-.register-form .form-control:hover {
-    border-color: #a0aec0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="dark"] .register-form .form-control {
@@ -398,26 +393,6 @@
     min-height: 120px;
     font-family: inherit;
     line-height: 1.5;
-    resize: vertical;
-}
-
-/* Bio textarea specific styling */
-.register-form textarea#id_bio {
-    min-height: 140px;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.register-form textarea#id_bio:hover {
-    border-color: #a0aec0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-}
-
-.register-form textarea#id_bio:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25), 0 4px 12px rgba(99, 102, 241, 0.1);
 }
 
 .register-form .form-label {
@@ -520,20 +495,10 @@
     box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 
-/* Password Toggle Styling */
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-wrapper .form-control {
-    padding-right: 3rem;
-}
-
-.password-toggle {
+/* Password Toggle Button */
+.password-toggle-btn {
     position: absolute;
-    right: 0.75rem;
+    right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
@@ -543,31 +508,59 @@
     padding: 0.5rem;
     font-size: 1rem;
     transition: all 0.2s ease;
-    border-radius: 0.375rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
+    z-index: 10;
 }
 
-.password-toggle:hover {
+.password-toggle-btn:hover {
     color: var(--primary-color);
     background: rgba(99, 102, 241, 0.1);
 }
 
-.password-toggle:focus {
+.password-toggle-btn:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
 }
 
-[data-theme="dark"] .password-toggle {
-    color: #adb5bd;
+/* Dark mode toggle button */
+[data-theme="dark"] .password-toggle-btn {
+    background: transparent;
+    color: #a0aec0;
 }
 
-[data-theme="dark"] .password-toggle:hover {
-    color: var(--primary-color);
+[data-theme="dark"] .password-toggle-btn:hover {
+    color: #fff;
     background: rgba(99, 102, 241, 0.2);
+}
+
+/* Password input styling */
+.position-relative input[type="password"],
+.position-relative input[type="text"] {
+    padding: 0.75rem 3.5rem 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid var(--border-light);
+    background: var(--card-light);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.position-relative input[type="password"]:focus,
+.position-relative input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    outline: none;
+}
+
+[data-theme="dark"] .position-relative input[type="password"],
+[data-theme="dark"] .position-relative input[type="text"] {
+    background: var(--card-dark);
+    border-color: var(--border-dark);
+    color: var(--text-dark);
 }
 </style>
 
